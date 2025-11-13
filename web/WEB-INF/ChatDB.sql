@@ -46,7 +46,7 @@ CREATE TABLE `messages` (
 CREATE TABLE `users` (
   `user_id` int NOT NULL,
   `username` varchar(25) COLLATE utf8mb4_general_ci NOT NULL,
-  `password` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `password` varchar(256) COLLATE utf8mb4_general_ci NOT NULL,
   `first_name` varchar(25) COLLATE utf8mb4_general_ci NOT NULL,
   `last_name` varchar(25) COLLATE utf8mb4_general_ci NOT NULL,
   `phone_number` varchar(10) COLLATE utf8mb4_general_ci DEFAULT NULL

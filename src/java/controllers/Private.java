@@ -17,7 +17,7 @@ public class Private extends HttpServlet {
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		getServletContext().getRequestDispatcher("/registration.jsp").forward(request, response);
+		getServletContext().getRequestDispatcher("/register.jsp").forward(request, response);
 	}
 
 	@Override
