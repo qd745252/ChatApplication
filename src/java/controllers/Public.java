@@ -17,13 +17,9 @@ import util.Validation;
 
 public class Public extends HttpServlet {
 
-	@Override
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		doPost(request, response);
-	}
+	protected void processRequest(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
 
-	@Override
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		String url = "/index.jsp";
 
 		String action = request.getParameter("action");
@@ -39,15 +35,16 @@ public class Public extends HttpServlet {
 					String storedHash = ChatDB.getPasswordForUsername(username);
 
 					boolean isPasswordCorrect = PasswordEncryption.checkPassword(plainPassword, storedHash);
-				if (!isPasswordCorrect) {
+					if (!isPasswordCorrect) {
 						request.setAttribute("loginError", "Invalid Username or Password");
 					} else {
 						User loggedInUser = ChatDB.selectUserByUsername(username);
 						request.getSession().setAttribute("loggedInUser", loggedInUser);
-						url = "/Private?action=gotoProfile";
+						url = "/Private";
 					}
 
 				} catch (NamingException | SQLException ex) {
+					Logger.getLogger(Public.class.getName()).log(Level.SEVERE, null, ex);
 				}
 				break;
 			}
@@ -66,30 +63,40 @@ public class Public extends HttpServlet {
 				String plainPassword = request.getParameter("password");
 				String hashedPassword = PasswordEncryption.hashPassword(plainPassword);
 
-                errors.put("username", Validation.validateUsername(username));
-                errors.put("password", Validation.validatePassword(plainPassword));
-                errors.put("firstName", Validation.validateFirstName(firstName));
-                errors.put("lastName", Validation.validateLastName(lastName));
-                errors.put("phoneNumber", Validation.validatePhoneNumber(phoneNumber));
+				errors.put("username", Validation.validateUsername(username));
+				errors.put("password", Validation.validatePassword(plainPassword));
+				errors.put("firstName", Validation.validateFirstName(firstName));
+				errors.put("lastName", Validation.validateLastName(lastName));
+				errors.put("phoneNumber", Validation.validatePhoneNumber(phoneNumber));
 
 				boolean isValid = true;
-				if (errors.get("username").isEmpty())
+				if (errors.get("username").isEmpty()) {
 					user.setUsername(username);
-				else isValid = false;
-				if (errors.get("password").isEmpty())
+				} else {
+					isValid = false;
+				}
+				if (errors.get("password").isEmpty()) {
 					user.setPassword(hashedPassword);
-				else isValid = false;
-				if (errors.get("firstName").isEmpty())
+				} else {
+					isValid = false;
+				}
+				if (errors.get("firstName").isEmpty()) {
 					user.setFirstName(firstName);
-				else isValid = false;
-				if (errors.get("lastName").isEmpty())
+				} else {
+					isValid = false;
+				}
+				if (errors.get("lastName").isEmpty()) {
 					user.setLastName(lastName);
-				else isValid = false;
+				} else {
+					isValid = false;
+				}
 				if (errors.get("phoneNumber").isEmpty()) {
 					String cleanedPhoneNumber = phoneNumber.replaceAll("[^0-9]", "");
 					user.setPhoneNumber(cleanedPhoneNumber);
-				} else isValid = false;
-				
+				} else {
+					isValid = false;
+				}
+
 				if (!isValid) {
 					request.setAttribute("errors", errors);
 					request.setAttribute("username", username);
@@ -113,7 +120,16 @@ public class Public extends HttpServlet {
 		}
 
 		getServletContext().getRequestDispatcher(url).forward(request, response);
+	}
 
+	@Override
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		processRequest(request, response);
+	}
+
+	@Override
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		processRequest(request, response);
 	}
 
 	@Override

@@ -5,19 +5,44 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import models.User;
 
 public class Private extends HttpServlet {
+
+	protected void processRequest(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		String url = "/register.jsp";
+		User loggedInUser = (User) request.getSession().getAttribute("loggedInUser");
+
+		if (loggedInUser == null) {
+			response.sendRedirect("Public");
+			return;
+		}
+
+		String action = request.getParameter("action");
+		if (action == null) {
+			action = "default";
+		}
+
+		switch (action) {
+			default: {
+				url = "/profile.jsp";
+				break;
+			}
+		}
+		getServletContext().getRequestDispatcher(url).forward(request, response);
+	}
 
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		doPost(request, response);
+		processRequest(request, response);
 	}
-	
+
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		getServletContext().getRequestDispatcher("/register.jsp").forward(request, response);
+		processRequest(request, response);
 	}
 
 	@Override

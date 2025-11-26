@@ -83,12 +83,12 @@ public class ChatDB {
 
 		if (rs.next()) {
 			user = new User();
-			user.setUserID(rs.getInt("userID"));
+			user.setUserID(rs.getInt("user_id"));
 			user.setUsername(rs.getString("username"));
 			user.setPassword(rs.getString("password"));
-			user.setFirstName(rs.getString("firstName"));
-			user.setLastName(rs.getString("lastName"));
-			user.setPhoneNumber(rs.getString("phoneNumber"));
+			user.setFirstName(rs.getString("first_name"));
+			user.setLastName(rs.getString("last_name"));
+			user.setPhoneNumber(rs.getString("phone_number"));
 		}
 
 		rs.close();
