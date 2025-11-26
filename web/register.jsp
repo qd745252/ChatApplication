@@ -7,12 +7,13 @@
         <title>Register</title>
     </head>
     <body>
+		<span class="errorMsg"><c:out value="${errors}" /></span>
         <form action="Public" method="post">
             <input type="hidden" name="action" value="register">
 
             <label>Username:</label>
             <input type="text" name="username" id="username" value="<c:out value='${username}' />">
-            
+
 			<label>Password:</label>
             <input type="password" name="password" id="password" value="<c:out value='${password}' />">
 

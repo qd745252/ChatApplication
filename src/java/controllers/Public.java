@@ -2,14 +2,18 @@ package controllers;
 
 import data.ChatDB;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.naming.NamingException;
 import java.sql.SQLException;
+import java.util.LinkedHashMap;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import models.User;
 import util.PasswordEncryption;
+import util.Validation;
 
 public class Public extends HttpServlet {
 
@@ -52,46 +56,57 @@ public class Public extends HttpServlet {
 				break;
 			}
 			case "register": {
+				LinkedHashMap<String, String> errors = new LinkedHashMap<>();
+				User user = new User();
 				String username = request.getParameter("username");
 				String firstName = request.getParameter("firstName");
 				String lastName = request.getParameter("lastName");
-				String birthDateString = request.getParameter("birthDate");
+				String phoneNumber = request.getParameter("phoneNumber");
 
 				String plainPassword = request.getParameter("password");
 				String hashedPassword = PasswordEncryption.hashPassword(plainPassword);
 
-				boolean isValid = true;
-				User user = new User();
+                errors.put("username", Validation.validateUsername(username));
+                errors.put("password", Validation.validatePassword(plainPassword));
+                errors.put("firstName", Validation.validateFirstName(firstName));
+                errors.put("lastName", Validation.validateLastName(lastName));
+                errors.put("phoneNumber", Validation.validatePhoneNumber(phoneNumber));
 
-//                if () {
-//					user.setUsername(username);
-//				} else {
-//					isValid = false;
-//				}
-//
-//                if () {
-//					user.setPassword(hashedPassword);
-//				} else {
-//					isValid = false;
-//				}
-//
-//				if (!isValid) {
-//					request.setAttribute("errors", errors);
-//					request.setAttribute("username", username);
-//					request.setAttribute("password", plainPassword);
-//					request.setAttribute("email", email);
-//					request.setAttribute("birthDate", birthDate);
-//
-//					url = "/register.jsp";
-//				} else {
-//					try {
-//						ChatDB.insert(user);
-//					} catch (NamingException | SQLException ex) {
-//						Logger.getLogger(Public.class.getName()).log(Level.SEVERE, null, ex);
-//					}
-//					url = "/index.jsp";
-//
-//				}
+				boolean isValid = true;
+				if (errors.get("username").isEmpty())
+					user.setUsername(username);
+				else isValid = false;
+				if (errors.get("password").isEmpty())
+					user.setPassword(hashedPassword);
+				else isValid = false;
+				if (errors.get("firstName").isEmpty())
+					user.setFirstName(firstName);
+				else isValid = false;
+				if (errors.get("lastName").isEmpty())
+					user.setLastName(lastName);
+				else isValid = false;
+				if (errors.get("phoneNumber").isEmpty()) {
+					String cleanedPhoneNumber = phoneNumber.replaceAll("[^0-9]", "");
+					user.setPhoneNumber(cleanedPhoneNumber);
+				} else isValid = false;
+				
+				if (!isValid) {
+					request.setAttribute("errors", errors);
+					request.setAttribute("username", username);
+					request.setAttribute("password", plainPassword);
+					request.setAttribute("firstName", firstName);
+					request.setAttribute("lastName", lastName);
+					request.setAttribute("phoneNumber", phoneNumber);
+
+					url = "/register.jsp";
+				} else {
+					try {
+						ChatDB.insertUser(user);
+					} catch (NamingException | SQLException ex) {
+						Logger.getLogger(Public.class.getName()).log(Level.SEVERE, null, ex);
+					}
+					url = "/index.jsp";
+				}
 			}
 			break;
 
