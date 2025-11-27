@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: db
--- Generation Time: Oct 29, 2025 at 01:52 AM
+-- Generation Time: Nov 26, 2025 at 07:50 PM
 -- Server version: 9.3.0
 -- PHP Version: 8.2.27
 
@@ -20,9 +20,8 @@ SET time_zone = "+00:00";
 --
 -- Database: `ChatDB`
 --
-DROP DATABASE IF EXISTS `ChatDB`;
-CREATE DATABASE `ChatDB`;
-ALTER DATABASE `ChatDB` COLLATE utf8mb4_general_ci;
+CREATE DATABASE IF NOT EXISTS `ChatDB` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+USE `ChatDB`;
 
 -- --------------------------------------------------------
 
@@ -32,7 +31,7 @@ ALTER DATABASE `ChatDB` COLLATE utf8mb4_general_ci;
 
 CREATE TABLE `messages` (
   `message_id` int NOT NULL,
-  `message_contents` text COLLATE utf8mb4_general_ci NOT NULL,
+  `message_contents` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `to_user_id` int NOT NULL,
   `from_user_id` int NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -45,24 +44,27 @@ CREATE TABLE `messages` (
 
 CREATE TABLE `users` (
   `user_id` int NOT NULL,
-  `username` varchar(25) COLLATE utf8mb4_general_ci NOT NULL,
-  `password` varchar(256) COLLATE utf8mb4_general_ci NOT NULL,
-  `first_name` varchar(25) COLLATE utf8mb4_general_ci NOT NULL,
-  `last_name` varchar(25) COLLATE utf8mb4_general_ci NOT NULL,
-  `phone_number` varchar(10) COLLATE utf8mb4_general_ci DEFAULT NULL
+  `username` varchar(25) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `password` varchar(48) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `first_name` varchar(25) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `last_name` varchar(25) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `phone_number` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `users`
+--
+
+INSERT INTO `users` (`user_id`, `username`, `password`, `first_name`, `last_name`, `phone_number`) VALUES
+(1, 'admin', '63e572809b42efd2bcce1e41ca43e766$10000$7dd3dce4', 'Admin', 'Admin', '1234567890');
+
+--
+-- ADMIN PASSWORD: ADMIN123!
+--
 
 --
 -- Indexes for dumped tables
 --
-
---
--- Indexes for table `messages`
---
-ALTER TABLE `messages`
-  ADD PRIMARY KEY (`message_id`),
-  ADD KEY `fk_to_user_id` (`to_user_id`),
-  ADD KEY `fk_from_user_id` (`from_user_id`);
 
 --
 -- Indexes for table `users`
@@ -75,27 +77,10 @@ ALTER TABLE `users`
 --
 
 --
--- AUTO_INCREMENT for table `messages`
---
-ALTER TABLE `messages`
-  MODIFY `message_id` int NOT NULL AUTO_INCREMENT;
-
---
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `user_id` int NOT NULL AUTO_INCREMENT;
-
---
--- Constraints for dumped tables
---
-
---
--- Constraints for table `messages`
---
-ALTER TABLE `messages`
-  ADD CONSTRAINT `fk_from_user_id` FOREIGN KEY (`from_user_id`) REFERENCES `users` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  ADD CONSTRAINT `fk_to_user_id` FOREIGN KEY (`to_user_id`) REFERENCES `users` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+  MODIFY `user_id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

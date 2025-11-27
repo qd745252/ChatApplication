@@ -71,7 +71,7 @@ public class Public extends HttpServlet {
 
 				boolean isValid = true;
 				if (errors.get("username").isEmpty()) {
-					user.setUsername(username);
+					user.setUsername(username.toLowerCase());
 				} else {
 					isValid = false;
 				}
@@ -109,10 +109,12 @@ public class Public extends HttpServlet {
 				} else {
 					try {
 						ChatDB.insertUser(user);
+						request.setAttribute("loggedInUser", user);
+						url = "/Private";
 					} catch (NamingException | SQLException ex) {
-						Logger.getLogger(Public.class.getName()).log(Level.SEVERE, null, ex);
+						Logger.getLogger(Public.class.getName()).log(Level.SEVERE, null, ex); //this should literally never happen but just in case go to index and log in terminal
+						url = "/index.jsp";
 					}
-					url = "/index.jsp";
 				}
 			}
 			break;

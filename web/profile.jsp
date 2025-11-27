@@ -5,19 +5,19 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <title>My Profile</title>
+		<link rel="stylesheet" href="css/style.css" type="text/css">
     </head>
     <body>
-        <h1>Welkom bij onze website, <c:out value='${loggedInUser.username}' /></h1>
+		<c:import url="nav.jsp"/>
+		<div id="container">
+			<h1>Welkom bij onze website, <c:out value='${loggedInUser.username}' /></h1>
 
-        <div class="profileContainer">
-            <div>
-                <h3>Gebruikersnaam: <c:out value="${loggedInUser.username}" /></h3>
-                <p>Eerstennaam: <c:out value="${loggedInUser.firstName}" /></p>
-                <p>Laatsteennaam: <c:out value="${loggedInUser.lastName}" /></p>
-				<c:if test="${not empty loggedInUser.phoneNumber}">
-                	<p>Telefoonnummer: <c:out value="${loggedInUser.phoneNumber}" /></p>
-				</c:if>
-            </div>
-        </div>
+			<h3>Gebruikersnaam: <c:out value="${loggedInUser.username}" /></h3>
+			<p>Eerstennaam: <c:out value="${loggedInUser.firstName}" /></p>
+			<p>Laatsteennaam: <c:out value="${loggedInUser.lastName}" /></p>
+			<c:if test="${not empty loggedInUser.phoneNumber}">
+				<p>Telefoonnummer: <c:out value="${loggedInUser.phoneNumber}" /></p>
+			</c:if>
+		</div>
     </body>
 </html>

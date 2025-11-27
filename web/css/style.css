@@ -1,0 +1,91 @@
+/*
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/Other/CascadeStyleSheet.css to edit this template
+*/
+/* 
+    Created on : 26 nov 2025, 13:58:46
+    Author     : creepergd
+*/
+
+html {
+	background-color: #000000;
+	color: #dadada;
+	font-size: 2vmin;
+	font-family: sans-serif;
+	height: 100%;
+	margin: 0;
+}
+
+li {
+  line-height: 1.6em;
+}
+
+body {
+	height: 100%;
+	margin: 0;
+}
+
+li {
+  line-height: 1.6em;
+}
+
+h1 {
+  font-size: 2.2em;
+}
+
+p {
+	margin: 0;
+}
+
+#container {
+  	background-color: #111111;
+	width: 60%;
+	min-height: 90vh;
+  	margin: auto;
+  	padding: 1em 2em;
+	text-align: center;
+}
+
+nav {
+	display: flex;
+	gap: 0.5em;
+  	text-align: center;
+  	background-color: #2080ff;
+	padding: 0.25em 0.25em;
+  	overflow: hidden;
+	justify-content: center;
+}
+
+input[type=submit] {
+    text-shadow: #000 1px 1px 1px;
+    text-align: center;
+	text-decoration: none;
+    background-color: #2080ff;
+    display: inline-block;
+	font-size: 1em;
+	text-decoration: none;
+	padding: 0.75em 0.75em;
+	border-radius: 0.5em;
+	border-width: 0;
+	color: #dadada;
+}
+
+input[type=submit]:hover {
+	background-color: #104080;
+}
+
+span {
+	color: #F00;
+	font-size: 60%;
+}
+
+@media screen and (orientation: portrait), screen and (max-width: 1023px) and (orientation: landscape), screen and (max-height: 767px) and (orientation: landscape), print{
+    html {
+        font-size: 16px;
+    }
+  
+    #content {
+        width: auto;
+        background-color: #000000;
+    }
+}

@@ -5,13 +5,14 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import models.User;
 
 public class Private extends HttpServlet {
 
 	protected void processRequest(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		String url = "/register.jsp";
+		String url = "/profile.jsp";
 		User loggedInUser = (User) request.getSession().getAttribute("loggedInUser");
 
 		if (loggedInUser == null) {
@@ -25,9 +26,13 @@ public class Private extends HttpServlet {
 		}
 
 		switch (action) {
-			default: {
-				url = "/profile.jsp";
-				break;
+			case "logout": {
+				HttpSession session = request.getSession(false);
+				if (session != null) {
+					session.invalidate();
+				}
+				response.sendRedirect("index.jsp");
+				return;
 			}
 		}
 		getServletContext().getRequestDispatcher(url).forward(request, response);

@@ -6,6 +6,7 @@ package util;
 
 import data.ChatDB;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.naming.NamingException;
@@ -16,11 +17,11 @@ public class Validation {
         String error = "";
         try {
             if (username == null || username.isEmpty())
-                error = "Required field";
+                error = "Please enter a username";
             else if (ChatDB.selectUserByUsername(username) != null)
-                error = "Username taken.";
+                error = "Username taken";
             else if (username.length() < 4 || username.length() > 30)
-                error = "Username must be between 4 and 30 characters.";
+                error = "Username must be between 4 and 30 characters";
 		} catch (NamingException ex) {
             Logger.getLogger(Validation.class.getName()).log(Level.SEVERE, null, ex);
 		} catch (SQLException ex) {
@@ -30,28 +31,31 @@ public class Validation {
     }
 
     public static String validatePassword(String password) {
-        String error = "";
+        ArrayList<String> errors = new ArrayList<>();
+		String errorMessage = "";
         if (password == null || password.isEmpty())
-            error = "Required field";
+            errorMessage = "Please enter a password";
         else {
-            if (password.length() < 8 || password.length() > 64)
-                error += "- Password must be longer than 8 characters and less than 64,";
+            if (password.length() < 8 || password.length() > 32)
+                errors.add("Password must be longer than 8 characters and less than 32");
             if (!password.matches(".*[A-Z].*"))
-                error += "- Password must contain at least one uppercase letter,";
+                errors.add("Password must contain at least one uppercase letter");
             if (!password.matches(".*[a-z].*"))
-                error += "- Password must containt at least one lowercase letter,";
+                errors.add("Password must containt at least one lowercase letter");
             if (!password.matches(".*\\d.*"))
-                error += "- Password must contain at least one number,";
+                errors.add("Password must contain at least one number");
             if (!password.matches(".*[!@#$%^&*()\\-+=<>?/{}~|].*"))
-                error += "- Password must contain at least one special character,";
+                errors.add("Password must contain at least one special character");
+			if (!errors.isEmpty())
+				errorMessage = String.join(", ", errors);
         }
-        return error;
+        return errorMessage;
     }
 
 	public static String validateFirstName(String firstName) {
 		String error = "";
 		if (firstName == null || firstName.isEmpty())
-			error = "Required field";
+			error = "Please enter a first name";
 		if (firstName.length() > 25)
 			error = "First name is too long";
 		return error;
@@ -60,7 +64,7 @@ public class Validation {
 	public static String validateLastName(String lastName) {
 		String error = "";
 		if (lastName == null || lastName.isEmpty())
-			error = "Required field";
+			error = "Please enter a last name";
 		if (lastName.length() > 25)
 			error = "First name is too long";
 		return error;
