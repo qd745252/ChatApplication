@@ -6,6 +6,7 @@ package data;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import javax.naming.NamingException;
 import models.Message;
 import models.User;
@@ -242,44 +243,44 @@ public class ChatDB {
 		return message;
 	}
 
-	public static Message selectAllMessagesFromUser(int userID) throws NamingException, SQLException {
+	public static LinkedHashMap<Integer, Message> selectAllMessagesFromUser(int userID) throws NamingException, SQLException {
 		ConnectionPool pool = ConnectionPool.getInstance();
 		Connection connection = pool.getConnection();
 		PreparedStatement ps = null;
 		ResultSet rs = null;
-		Message message = null;
+		LinkedHashMap<Integer, Message> messages = new LinkedHashMap<>();
 
 		String query = "SELECT * FROM messages"
-				+ "WHERE from_user_id = ?";
+				+ " WHERE from_user_id = ?";
 
 		ps = connection.prepareStatement(query);
 		ps.setInt(1, userID);
 		rs = ps.executeQuery();
 
 		while (rs.next()) {
-			message = new Message();
+			Message message = new Message();
 			message.setMessageID(rs.getInt("message_id"));
 			message.setMessageContents(rs.getString("message_contents"));
 			message.setToUserID(rs.getInt("to_user_id"));
 			message.setFromUserID(rs.getInt("from_user_id"));
+			messages.put(message.getMessageID(), message);
 		}
 
 		rs.close();
 		ps.close();
 		pool.freeConnection(connection);
 
-		return message;
+		return messages;
 	}
 
-	public static Message selectAllMessagesFromUserByUsername(String username) throws NamingException, SQLException {
+	public static LinkedHashMap<String, Message> selectAllMessagesFromUserByUsername(String username) throws NamingException, SQLException {
 		ConnectionPool pool = ConnectionPool.getInstance();
 		Connection connection = pool.getConnection();
 		PreparedStatement ps = null;
 		ResultSet rs = null;
-		Message message = null;
-
+		LinkedHashMap<String, Message> messages = new LinkedHashMap<>();
 		String query = "SELECT * FROM messages"
-				+ "WHERE from_user_id = ?";
+				+ " WHERE from_user_id = ?";
 
 		ps = connection.prepareStatement(query);
 		User user = ChatDB.selectUserByUsername(username);
@@ -287,21 +288,83 @@ public class ChatDB {
 		rs = ps.executeQuery();
 
 		while (rs.next()) {
-			message = new Message();
+			Message message = new Message();
 			message.setMessageID(rs.getInt("message_id"));
 			message.setMessageContents(rs.getString("message_contents"));
 			message.setToUserID(rs.getInt("to_user_id"));
 			message.setFromUserID(rs.getInt("from_user_id"));
+			messages.put(ChatDB.selectUser(message.getMessageID()).getUsername(), message);
 		}
 
 		rs.close();
 		ps.close();
 		pool.freeConnection(connection);
 
-		return message;
+		return messages;
 	}
 
-		public static Message updateMessage(Message message, User user) throws NamingException, SQLException {
+	public static LinkedHashMap<Integer, Message> selectAllMessagesToUser(int userID) throws NamingException, SQLException {
+		ConnectionPool pool = ConnectionPool.getInstance();
+		Connection connection = pool.getConnection();
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		LinkedHashMap<Integer, Message> messages = new LinkedHashMap<>();
+
+		String query = "SELECT * FROM messages "
+				+ " WHERE to_user_id = ?";
+
+		ps = connection.prepareStatement(query);
+		ps.setInt(1, userID);
+		rs = ps.executeQuery();
+
+		while (rs.next()) {
+			Message message = new Message();
+			message.setMessageID(rs.getInt("message_id"));
+			message.setMessageContents(rs.getString("message_contents"));
+			message.setToUserID(rs.getInt("to_user_id"));
+			message.setFromUserID(rs.getInt("from_user_id"));
+			messages.put(message.getMessageID(), message);
+		}
+
+		rs.close();
+		ps.close();
+		pool.freeConnection(connection);
+
+		return messages;
+	}
+
+	public static LinkedHashMap<String, Message> selectAllMessagesToUserByUsername(String username) throws NamingException, SQLException {
+		ConnectionPool pool = ConnectionPool.getInstance();
+		Connection connection = pool.getConnection();
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		LinkedHashMap<String, Message> messages = new LinkedHashMap<>();
+
+		String query = "SELECT * FROM messages"
+				+ " WHERE to_user_id = ?";
+
+		ps = connection.prepareStatement(query);
+		User user = ChatDB.selectUserByUsername(username);
+		ps.setInt(1, user.getUserID());
+		rs = ps.executeQuery();
+
+		while (rs.next()) {
+			Message message = new Message();
+			message.setMessageID(rs.getInt("message_id"));
+			message.setMessageContents(rs.getString("message_contents"));
+			message.setToUserID(rs.getInt("to_user_id"));
+			message.setFromUserID(rs.getInt("from_user_id"));
+			messages.put(ChatDB.selectUser(message.getMessageID()).getUsername(), message);
+		}
+
+		rs.close();
+		ps.close();
+		pool.freeConnection(connection);
+
+		return messages;
+	}
+
+	public static Message updateMessage(Message message, User user) throws NamingException, SQLException {
 		User dbUser = selectUser(message.getFromUserID()); // The user parameter on this method indicates that the update method may be being called from another user, in my case admin
 		ConnectionPool pool = ConnectionPool.getInstance();
 		Connection connection = pool.getConnection();
@@ -309,8 +372,8 @@ public class ChatDB {
 		String query = "";
 
 		if (dbUser == null || user.getUsername().equals("admin")) {
-			query = "UPDATE messages"
-					+ "SET message_contents = ?, "
+			query = "UPDATE messages "
+					+ "SET message_contents = ?,"
 					+ "to_user_id = ?,"
 					+ "WHERE from_user_id = ?";
 			ps = connection.prepareStatement(query);

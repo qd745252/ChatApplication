@@ -1,12 +1,19 @@
 package controllers;
 
+import data.ChatDB;
 import java.io.IOException;
+import java.util.LinkedHashMap;
+import javax.naming.NamingException;
+import java.sql.SQLException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import models.Message;
 import models.User;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Private extends HttpServlet {
 
@@ -35,6 +42,18 @@ public class Private extends HttpServlet {
 				return;
 			}
 			case "gotoMessages": {
+				url = "/messages.jsp";
+				try {
+					LinkedHashMap<String, Message> toUserMessages = ChatDB.selectAllMessagesToUserByUsername(loggedInUser.getUsername());
+					LinkedHashMap<String, Message> fromUserMessages = ChatDB.selectAllMessagesFromUserByUsername(loggedInUser.getUsername());
+					
+					request.setAttribute("toUserMessages", toUserMessages);
+					request.setAttribute("fromUserMessages", fromUserMessages);
+				} catch (NamingException | SQLException ex) {
+					Logger.getLogger(Public.class.getName()).log(Level.SEVERE, null, ex);
+					url = "/Public";
+				}
+				break;
 			}
 		}
 		getServletContext().getRequestDispatcher(url).forward(request, response);

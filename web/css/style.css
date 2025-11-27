@@ -50,7 +50,7 @@ nav {
 	display: flex;
 	gap: 0.5em;
   	text-align: center;
-  	background-color: #2080ff;
+  	background-color: #5865F2;
 	padding: 0.25em 0.25em;
   	overflow: hidden;
 	justify-content: center;
@@ -60,7 +60,7 @@ input[type=submit] {
     text-shadow: #000 1px 1px 1px;
     text-align: center;
 	text-decoration: none;
-    background-color: #2080ff;
+    background-color: #5865F2;
     display: inline-block;
 	font-size: 1em;
 	text-decoration: none;
@@ -77,6 +77,10 @@ input[type=submit]:hover {
 span {
 	color: #F00;
 	font-size: 60%;
+}
+
+table {
+	margin: 0px auto;
 }
 
 @media screen and (orientation: portrait), screen and (max-width: 1023px) and (orientation: landscape), screen and (max-height: 767px) and (orientation: landscape), print{

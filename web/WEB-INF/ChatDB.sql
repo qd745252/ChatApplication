@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: db
--- Generation Time: Nov 26, 2025 at 07:50 PM
+-- Generation Time: Nov 27, 2025 at 05:27 AM
 -- Server version: 9.3.0
 -- PHP Version: 8.2.27
 
@@ -59,12 +59,18 @@ INSERT INTO `users` (`user_id`, `username`, `password`, `first_name`, `last_name
 (1, 'admin', '63e572809b42efd2bcce1e41ca43e766$10000$7dd3dce4', 'Admin', 'Admin', '1234567890');
 
 --
--- ADMIN PASSWORD: ADMIN123!
+-- ADMIN PASSWORD: Admin123!
 --
 
 --
 -- Indexes for dumped tables
 --
+
+--
+-- Indexes for table `messages`
+--
+ALTER TABLE `messages`
+  ADD PRIMARY KEY (`message_id`);
 
 --
 -- Indexes for table `users`
@@ -77,10 +83,16 @@ ALTER TABLE `users`
 --
 
 --
+-- AUTO_INCREMENT for table `messages`
+--
+ALTER TABLE `messages`
+  MODIFY `message_id` int NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `user_id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `user_id` int NOT NULL AUTO_INCREMENT;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
