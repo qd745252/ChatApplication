@@ -7,6 +7,7 @@ package data;
 import java.sql.*;
 import java.util.ArrayList;
 import javax.naming.NamingException;
+import models.Message;
 import models.User;
 
 public class ChatDB {
@@ -44,7 +45,7 @@ public class ChatDB {
 		User user = null;
 
 		String query = "SELECT * FROM users "
-				+ "WHERE userID = ?";
+				+ "WHERE user_id = ?";
 
 		ps = connection.prepareStatement(query);
 		ps.setInt(1, userID);
@@ -52,12 +53,12 @@ public class ChatDB {
 
 		if (rs.next()) {
 			user = new User();
-			user.setUserID(rs.getInt("userID"));
+			user.setUserID(rs.getInt("user_id"));
 			user.setUsername(rs.getString("username"));
 			user.setPassword(rs.getString("password"));
-			user.setFirstName(rs.getString("firstName"));
-			user.setLastName(rs.getString("lastName"));
-			user.setPhoneNumber(rs.getString("phoneNumber"));
+			user.setFirstName(rs.getString("first_name"));
+			user.setLastName(rs.getString("last_name"));
+			user.setPhoneNumber(rs.getString("phone_number"));
 		}
 
 		rs.close();
@@ -136,7 +137,7 @@ public class ChatDB {
 		pool.freeConnection(connection);
 		return user;
 	}
-	
+
 	public static String getPasswordForUsername(String username) throws NamingException, SQLException {
 		ConnectionPool pool = ConnectionPool.getInstance();
 		Connection connection = pool.getConnection();
@@ -175,12 +176,12 @@ public class ChatDB {
 
 		while (rs.next()) {
 			User user = new User();
-			user.setUserID(rs.getInt("userID"));
+			user.setUserID(rs.getInt("user_id"));
 			user.setUsername(rs.getString("username"));
 			user.setPassword(rs.getString("password"));
-			user.setFirstName(rs.getString("firstName"));
-			user.setLastName(rs.getString("lastName"));
-			user.setPhoneNumber(rs.getString("phoneNumber"));
+			user.setFirstName(rs.getString("first_name"));
+			user.setLastName(rs.getString("last_name"));
+			user.setPhoneNumber(rs.getString("phone_number"));
 			userList.add(user);
 		}
 
@@ -188,5 +189,140 @@ public class ChatDB {
 		ps.close();
 		pool.freeConnection(connection);
 		return userList;
+	}
+
+	public static int insertMessage(Message message) throws NamingException, SQLException {
+		ConnectionPool pool = ConnectionPool.getInstance();
+		Connection connection = pool.getConnection();
+		PreparedStatement ps = null;
+
+		String query
+				= "INSERT INTO messages(message_contents, to_user_id, from_user_id) "
+				+ "VALUES (?, ?, ?)";
+
+		ps = connection.prepareStatement(query);
+		ps.setString(1, message.getMessageContents());
+		ps.setInt(2, message.getToUserID());
+		ps.setInt(3, message.getFromUserID());
+
+		int rows = ps.executeUpdate();
+
+		ps.close();
+		pool.freeConnection(connection);
+
+		return rows;
+	}
+
+	public static Message selectMessage(int messageID) throws NamingException, SQLException {
+		ConnectionPool pool = ConnectionPool.getInstance();
+		Connection connection = pool.getConnection();
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		Message message = null;
+
+		String query = "SELECT * FROM messages"
+				+ "WHERE message_id = ?";
+
+		ps = connection.prepareStatement(query);
+		ps.setInt(1, messageID);
+		rs = ps.executeQuery();
+
+		if (rs.next()) {
+			message = new Message();
+			message.setMessageID(rs.getInt("message_id"));
+			message.setMessageContents(rs.getString("message_contents"));
+			message.setToUserID(rs.getInt("to_user_id"));
+			message.setFromUserID(rs.getInt("from_user_id"));
+		}
+
+		rs.close();
+		ps.close();
+		pool.freeConnection(connection);
+
+		return message;
+	}
+
+	public static Message selectAllMessagesFromUser(int userID) throws NamingException, SQLException {
+		ConnectionPool pool = ConnectionPool.getInstance();
+		Connection connection = pool.getConnection();
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		Message message = null;
+
+		String query = "SELECT * FROM messages"
+				+ "WHERE from_user_id = ?";
+
+		ps = connection.prepareStatement(query);
+		ps.setInt(1, userID);
+		rs = ps.executeQuery();
+
+		while (rs.next()) {
+			message = new Message();
+			message.setMessageID(rs.getInt("message_id"));
+			message.setMessageContents(rs.getString("message_contents"));
+			message.setToUserID(rs.getInt("to_user_id"));
+			message.setFromUserID(rs.getInt("from_user_id"));
+		}
+
+		rs.close();
+		ps.close();
+		pool.freeConnection(connection);
+
+		return message;
+	}
+
+	public static Message selectAllMessagesFromUserByUsername(String username) throws NamingException, SQLException {
+		ConnectionPool pool = ConnectionPool.getInstance();
+		Connection connection = pool.getConnection();
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		Message message = null;
+
+		String query = "SELECT * FROM messages"
+				+ "WHERE from_user_id = ?";
+
+		ps = connection.prepareStatement(query);
+		User user = ChatDB.selectUserByUsername(username);
+		ps.setInt(1, user.getUserID());
+		rs = ps.executeQuery();
+
+		while (rs.next()) {
+			message = new Message();
+			message.setMessageID(rs.getInt("message_id"));
+			message.setMessageContents(rs.getString("message_contents"));
+			message.setToUserID(rs.getInt("to_user_id"));
+			message.setFromUserID(rs.getInt("from_user_id"));
+		}
+
+		rs.close();
+		ps.close();
+		pool.freeConnection(connection);
+
+		return message;
+	}
+
+		public static Message updateMessage(Message message, User user) throws NamingException, SQLException {
+		User dbUser = selectUser(message.getFromUserID()); // The user parameter on this method indicates that the update method may be being called from another user, in my case admin
+		ConnectionPool pool = ConnectionPool.getInstance();
+		Connection connection = pool.getConnection();
+		PreparedStatement ps = null;
+		String query = "";
+
+		if (dbUser == null || user.getUsername().equals("admin")) {
+			query = "UPDATE messages"
+					+ "SET message_contents = ?, "
+					+ "to_user_id = ?,"
+					+ "WHERE from_user_id = ?";
+			ps = connection.prepareStatement(query);
+			ps.setString(1, message.getMessageContents());
+			ps.setInt(2, message.getToUserID());
+			ps.setInt(3, message.getFromUserID());
+		}
+
+		ps.executeUpdate();
+
+		ps.close();
+		pool.freeConnection(connection);
+		return message;
 	}
 }

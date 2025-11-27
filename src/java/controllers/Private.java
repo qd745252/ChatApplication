@@ -34,6 +34,8 @@ public class Private extends HttpServlet {
 				response.sendRedirect("index.jsp");
 				return;
 			}
+			case "gotoMessages": {
+			}
 		}
 		getServletContext().getRequestDispatcher(url).forward(request, response);
 	}

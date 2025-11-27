@@ -10,7 +10,7 @@
     <body>
 		<c:import url="nav.jsp"/>
 		<div id="container">
-			<h1>Login Here</h1>
+			<h1>Welcome to my chat app!</h1>
 			<p>Don't have an account?</p>
 			<br>
 			<form action='Public' method="post">

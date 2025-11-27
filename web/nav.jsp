@@ -1,18 +1,14 @@
 <%-- 
-    Document   : PublicNav
-    Created on : Mar 25, 2025, 1:26:56 PM
-    Author     : tp728946
+    Document   : nav 
+    Created on : Nov 26 2025, 17:26:56
+    Author     : creepergd
 --%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<!DOCTYPE html>
-<head>
-	<link rel="stylesheet" href="css/style.css" type="text/css">
-</head>
 
 <nav>
-	<form id="home_button" action="Public" method="post">
+	<form action="Public" method="post">
 		<input type="hidden" name="action" value="default">
 		<input type="submit" value="Home">
 	</form>
@@ -29,6 +25,17 @@
 			<input type="hidden" name="action" value="gotoMessages">
 			<input type="submit" value="Messages">
 		</form>
+
+		<c:if test="${loggedInUser.username eq 'admin'}">
+			<form action="Private" method="post">
+				<input type="hidden" name="action" value="viewAllMessages">
+				<input type="submit" value="View All Messages">
+			</form>
+			<form action="Private" method="post">
+				<input type="hidden" name="action" value="viewAllUsers">
+				<input type="submit" value="View All Users">
+			</form>
+		</c:if>
 		<form action="Private" method="post">
 			<input type="hidden" name="action" value="logout">
 			<input type="submit" value="Log Out">

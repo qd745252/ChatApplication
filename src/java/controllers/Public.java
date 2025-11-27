@@ -109,16 +109,15 @@ public class Public extends HttpServlet {
 				} else {
 					try {
 						ChatDB.insertUser(user);
-						request.setAttribute("loggedInUser", user);
+						request.getSession().setAttribute("loggedInUser", user);
 						url = "/Private";
 					} catch (NamingException | SQLException ex) {
-						Logger.getLogger(Public.class.getName()).log(Level.SEVERE, null, ex); //this should literally never happen but just in case go to index and log in terminal
-						url = "/index.jsp";
+						Logger.getLogger(Public.class.getName()).log(Level.SEVERE, null, ex); //this should literally never happen but just in case go back to public and log in terminal
+						url = "/Public";
 					}
 				}
+				break;
 			}
-			break;
-
 		}
 
 		getServletContext().getRequestDispatcher(url).forward(request, response);

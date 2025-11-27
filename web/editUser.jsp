@@ -1,3 +1,9 @@
+<%-- 
+    Document   : editUser
+    Created on : 26 nov 2025, 18:43:19
+    Author     : creepergd
+--%>
+
 <%@page import="models.User"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
