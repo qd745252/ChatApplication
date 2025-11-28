@@ -11,6 +11,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import models.User;
 import util.PasswordEncryption;
 import util.Validation;
@@ -21,6 +22,25 @@ public class Public extends HttpServlet {
 			throws ServletException, IOException {
 
 		String url = "/index.jsp";
+
+		HttpSession session = request.getSession(false);
+		User loggedInUser = null;
+		if (session != null) {
+			loggedInUser = (User) session.getAttribute("loggedInUser");
+			if (loggedInUser != null) {
+				try {
+					User userInDB = ChatDB.selectUser(loggedInUser.getUserID());
+					if (userInDB == null) {
+						session.invalidate();
+						loggedInUser = null;
+					}
+				} catch (NamingException | SQLException ex) {
+					Logger.getLogger(Public.class.getName()).log(Level.SEVERE, null, ex);
+					session.invalidate();
+					loggedInUser = null;
+				}
+			}
+		}
 
 		String action = request.getParameter("action");
 		if (action == null) {
@@ -38,7 +58,7 @@ public class Public extends HttpServlet {
 					if (!isPasswordCorrect) {
 						request.setAttribute("loginError", "Invalid Username or Password");
 					} else {
-						User loggedInUser = ChatDB.selectUserByUsername(username);
+						loggedInUser = ChatDB.selectUserByUsername(username);
 						request.getSession().setAttribute("loggedInUser", loggedInUser);
 						url = "/Private";
 					}
@@ -70,43 +90,34 @@ public class Public extends HttpServlet {
 				errors.put("phoneNumber", Validation.validatePhoneNumber(phoneNumber));
 
 				boolean isValid = true;
-				if (errors.get("username").isEmpty()) {
+				if (errors.get("username").isBlank()) {
 					user.setUsername(username.toLowerCase());
 				} else {
 					isValid = false;
 				}
-				if (errors.get("password").isEmpty()) {
+				if (errors.get("password").isBlank()) {
 					user.setPassword(hashedPassword);
 				} else {
 					isValid = false;
 				}
-				if (errors.get("firstName").isEmpty()) {
+				if (errors.get("firstName").isBlank()) {
 					user.setFirstName(firstName);
 				} else {
 					isValid = false;
 				}
-				if (errors.get("lastName").isEmpty()) {
+				if (errors.get("lastName").isBlank()) {
 					user.setLastName(lastName);
 				} else {
 					isValid = false;
 				}
-				if (errors.get("phoneNumber").isEmpty()) {
+				if (errors.get("phoneNumber").isBlank()) {
 					String cleanedPhoneNumber = phoneNumber.replaceAll("[^0-9]", "");
 					user.setPhoneNumber(cleanedPhoneNumber);
 				} else {
 					isValid = false;
 				}
 
-				if (!isValid) {
-					request.setAttribute("errors", errors);
-					request.setAttribute("username", username);
-					request.setAttribute("password", plainPassword);
-					request.setAttribute("firstName", firstName);
-					request.setAttribute("lastName", lastName);
-					request.setAttribute("phoneNumber", phoneNumber);
-
-					url = "/register.jsp";
-				} else {
+				if (isValid) {
 					try {
 						ChatDB.insertUser(user);
 						request.getSession().setAttribute("loggedInUser", user);
@@ -115,6 +126,15 @@ public class Public extends HttpServlet {
 						Logger.getLogger(Public.class.getName()).log(Level.SEVERE, null, ex); //this should literally never happen but just in case go back to public and log in terminal
 						url = "/Public";
 					}
+				} else {
+					request.setAttribute("errors", errors);
+					request.setAttribute("username", username);
+					request.setAttribute("password", plainPassword);
+					request.setAttribute("firstName", firstName);
+					request.setAttribute("lastName", lastName);
+					request.setAttribute("phoneNumber", phoneNumber);
+
+					url = "/register.jsp";
 				}
 				break;
 			}

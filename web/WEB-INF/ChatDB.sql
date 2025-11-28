@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: db
--- Generation Time: Nov 27, 2025 at 05:27 AM
+-- Generation Time: Nov 28, 2025 at 03:05 AM
 -- Server version: 9.3.0
 -- PHP Version: 8.2.27
 
@@ -31,7 +31,7 @@ USE `ChatDB`;
 
 CREATE TABLE `messages` (
   `message_id` int NOT NULL,
-  `message_contents` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `message_contents` tinytext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `to_user_id` int NOT NULL,
   `from_user_id` int NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -58,6 +58,7 @@ CREATE TABLE `users` (
 INSERT INTO `users` (`user_id`, `username`, `password`, `first_name`, `last_name`, `phone_number`) VALUES
 (1, 'admin', '63e572809b42efd2bcce1e41ca43e766$10000$7dd3dce4', 'Admin', 'Admin', '1234567890');
 
+
 --
 -- ADMIN PASSWORD: Admin123!
 --
@@ -70,7 +71,9 @@ INSERT INTO `users` (`user_id`, `username`, `password`, `first_name`, `last_name
 -- Indexes for table `messages`
 --
 ALTER TABLE `messages`
-  ADD PRIMARY KEY (`message_id`);
+  ADD PRIMARY KEY (`message_id`),
+  ADD KEY `fk_messages_users_from_user` (`from_user_id`),
+  ADD KEY `fk_messages_users_to_user` (`to_user_id`);
 
 --
 -- Indexes for table `users`
@@ -86,13 +89,24 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `messages`
 --
 ALTER TABLE `messages`
-  MODIFY `message_id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `message_id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `user_id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `user_id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `messages`
+--
+ALTER TABLE `messages`
+  ADD CONSTRAINT `fk_messages_users_from_user` FOREIGN KEY (`from_user_id`) REFERENCES `users` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  ADD CONSTRAINT `fk_messages_users_to_user` FOREIGN KEY (`to_user_id`) REFERENCES `users` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

@@ -30,6 +30,7 @@
 				<br>
 				<input type="submit" value="Login">
 			</form>
+				<span><c:out value="${errors['sqlError']}" /></span>
 		</div>
     </body>
 </html>

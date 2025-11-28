@@ -8,6 +8,12 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <nav>
+	<c:if test="${not empty loggedInUser}">
+		<form id="float-left" action="Private" method="post">
+			<input type="hidden" name="action" value="default">
+			<input type="submit" value="${loggedInUser.username}'s Profile">
+		</form>	
+	</c:if>
 	<form action="Public" method="post">
 		<input type="hidden" name="action" value="default">
 		<input type="submit" value="Home">
@@ -18,14 +24,9 @@
 	</form>
 	<c:if test="${not empty loggedInUser}">
 		<form action="Private" method="post">
-			<input type="hidden" name="action" value="default">
-			<input type="submit" value="Profile">
-		</form>	
-		<form action="Private" method="post">
 			<input type="hidden" name="action" value="gotoMessages">
 			<input type="submit" value="Messages">
 		</form>
-
 		<c:if test="${loggedInUser.username eq 'admin'}">
 			<form action="Private" method="post">
 				<input type="hidden" name="action" value="viewAllMessages">
@@ -36,7 +37,7 @@
 				<input type="submit" value="View All Users">
 			</form>
 		</c:if>
-		<form action="Private" method="post">
+		<form id="float-right" action="Private" method="post">
 			<input type="hidden" name="action" value="logout">
 			<input type="submit" value="Log Out">
 		</form>

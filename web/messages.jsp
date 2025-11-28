@@ -27,56 +27,35 @@
     <body>
 		<c:import url="nav.jsp"/>
 		<div id="container">
-			<p> Inbox </p>
+			<h1>Chat:</h1>
+			<div id="chat">
+				<c:forEach items="${messages}" var="message">
+					<c:choose>
+						<c:when test="${ChatDB.selectUser(message.value.fromUserID).getUsername() eq loggedInUser.username}">
+							<p>${ChatDB.selectUser(message.value.fromUserID).getUsername()} (you) to ${ChatDB.selectUser(message.value.toUserID).getUsername()}: ${message.value.messageContents}</p>
+						</c:when>
+						<c:otherwise>
+							<p>${ChatDB.selectUser(message.value.fromUserID).getUsername()}: ${message.value.messageContents}</p>
+						</c:otherwise>
+					</c:choose>
+				</c:forEach>
+			</div>
 			<br>
-			<table>
-				<thead>
-					<tr>
-						<th>From</th>
-						<th>Message</th>
-					</tr>
-				</thead>
-				<tbody>
-					<c:forEach items="${toUserMessages}" var="message">
-						<tr>
-							<td>
-								${message.key}	
-							</td>
-							<td>
-								${message.value.messageContents}
-							</td>
-						</tr>
-					</c:forEach>
-				</tbody>
-			</table>
+			<p>(up to 255 characters)</p>
 			<br>
-			<p>Sent</p>
-			<br>
-			<table>
-				<thead>
-					<tr>
-						<th>From</th>
-						<th>Message</th>
-					</tr>
-				</thead>
-				<tbody>
-					<c:forEach items="${fromUserMessages}" var="message">
-						<tr>
-							<td>
-								${message.key} (you)
-							</td>
-							<td>
-								${message.value.messageContents}
-							</td>
-						</tr>
-					</c:forEach>
-				</tbody>
-			</table>
+			<h2>Send a Message</h2>
 			<form action="Private" method="post">
 				<input type="hidden" name="action" value="sendMessage">
-				<input type="text" name="messageContents" placeholder="Enter Message Here">
+				<input type="text" name="toUsername" placeholder="To: " value="<c:out value='${toUsername}' />">
+				<br>
+				<span>${errors["toAndFromUserIDs"]}</span>
+				<br>
+				<input type="text" name="messageContents" placeholder="Enter Message Here" value="<c:out value='${messageContents}' />">
+				<br>
+				<span>${errors["messageContents"]}</span>
+				<br>
 				<input type="submit" value="Send">
 			</form>
 		</div>
-    </body>
+	</body>
 </html>

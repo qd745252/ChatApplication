@@ -16,13 +16,11 @@ public class ChatDB {
 	public static int insertUser(User user) throws NamingException, SQLException {
 		ConnectionPool pool = ConnectionPool.getInstance();
 		Connection connection = pool.getConnection();
-		PreparedStatement ps = null;
 
-		String query
-				= "INSERT INTO users (username, password, first_name, last_name, phone_number) "
+		String query = "INSERT INTO users (username, password, first_name, last_name, phone_number) "
 				+ "VALUES (?, ?, ?, ?, ?)";
+		PreparedStatement ps = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
 
-		ps = connection.prepareStatement(query);
 		ps.setString(1, user.getUsername());
 		ps.setString(2, user.getPassword());
 		ps.setString(3, user.getFirstName());
@@ -31,11 +29,17 @@ public class ChatDB {
 
 		int rows = ps.executeUpdate();
 
+		ResultSet rs = ps.getGeneratedKeys();
+		if (rs.next()) {
+			int generatedId = rs.getInt(1);
+			user.setUserID(generatedId);
+		} // I need to do this because if you register and this isn't here, when you login you can't send messages bcus foreign keys
+
+		rs.close();
 		ps.close();
 		pool.freeConnection(connection);
 
 		return rows;
-
 	}
 
 	public static User selectUser(int userID) throws NamingException, SQLException {
@@ -221,7 +225,7 @@ public class ChatDB {
 		ResultSet rs = null;
 		Message message = null;
 
-		String query = "SELECT * FROM messages"
+		String query = "SELECT * FROM messages "
 				+ "WHERE message_id = ?";
 
 		ps = connection.prepareStatement(query);
@@ -273,12 +277,12 @@ public class ChatDB {
 		return messages;
 	}
 
-	public static LinkedHashMap<String, Message> selectAllMessagesFromUserByUsername(String username) throws NamingException, SQLException {
+	public static LinkedHashMap<Integer, Message> selectAllMessagesFromUserByUsername(String username) throws NamingException, SQLException {
 		ConnectionPool pool = ConnectionPool.getInstance();
 		Connection connection = pool.getConnection();
 		PreparedStatement ps = null;
 		ResultSet rs = null;
-		LinkedHashMap<String, Message> messages = new LinkedHashMap<>();
+		LinkedHashMap<Integer, Message> messages = new LinkedHashMap<>();
 		String query = "SELECT * FROM messages"
 				+ " WHERE from_user_id = ?";
 
@@ -293,7 +297,7 @@ public class ChatDB {
 			message.setMessageContents(rs.getString("message_contents"));
 			message.setToUserID(rs.getInt("to_user_id"));
 			message.setFromUserID(rs.getInt("from_user_id"));
-			messages.put(ChatDB.selectUser(message.getMessageID()).getUsername(), message);
+			messages.put(message.getMessageID(), message);
 		}
 
 		rs.close();
@@ -333,12 +337,12 @@ public class ChatDB {
 		return messages;
 	}
 
-	public static LinkedHashMap<String, Message> selectAllMessagesToUserByUsername(String username) throws NamingException, SQLException {
+	public static LinkedHashMap<Integer, Message> selectAllMessagesToUserByUsername(String username) throws NamingException, SQLException {
 		ConnectionPool pool = ConnectionPool.getInstance();
 		Connection connection = pool.getConnection();
 		PreparedStatement ps = null;
 		ResultSet rs = null;
-		LinkedHashMap<String, Message> messages = new LinkedHashMap<>();
+		LinkedHashMap<Integer, Message> messages = new LinkedHashMap<>();
 
 		String query = "SELECT * FROM messages"
 				+ " WHERE to_user_id = ?";
@@ -354,7 +358,7 @@ public class ChatDB {
 			message.setMessageContents(rs.getString("message_contents"));
 			message.setToUserID(rs.getInt("to_user_id"));
 			message.setFromUserID(rs.getInt("from_user_id"));
-			messages.put(ChatDB.selectUser(message.getMessageID()).getUsername(), message);
+			messages.put(message.getMessageID(), message);
 		}
 
 		rs.close();

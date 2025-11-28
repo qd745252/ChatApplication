@@ -18,8 +18,7 @@ public class Message implements Serializable {
 	
 	public Message() {}
 
-	public Message(int messageID, String messageContents, int toUserID, int fromUserID) {
-		this.messageID = messageID;
+	public Message(String messageContents, int toUserID, int fromUserID) {
 		this.messageContents = messageContents;
 		this.toUserID = toUserID;
 		this.fromUserID = fromUserID;

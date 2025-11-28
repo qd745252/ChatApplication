@@ -17,7 +17,7 @@ html {
 }
 
 li {
-  line-height: 1.6em;
+	line-height: 1.6em;
 }
 
 body {
@@ -26,11 +26,11 @@ body {
 }
 
 li {
-  line-height: 1.6em;
+	line-height: 1.6em;
 }
 
 h1 {
-  font-size: 2.2em;
+	font-size: 2.2em;
 }
 
 p {
@@ -38,29 +38,48 @@ p {
 }
 
 #container {
-  	background-color: #111111;
+	background-color: #111111;
 	width: 60%;
 	min-height: 90vh;
-  	margin: auto;
-  	padding: 1em 2em;
+	margin: auto;
+	padding: 1em 2em;
 	text-align: center;
 }
 
 nav {
-	display: flex;
-	gap: 0.5em;
-  	text-align: center;
-  	background-color: #5865F2;
+	width: 100%;
+	display: flex; /* Use Flexbox for horizontal layout */
+	flex-wrap: wrap; /* Optional: allows wrapping if needed */
+	gap: 0.5em; /* Space between items */
+	text-align: center;
+	background-color: #7388D9;
 	padding: 0.25em 0.25em;
-  	overflow: hidden;
-	justify-content: center;
+	overflow: hidden;
+	justify-content: center; /* Center items horizontally */
+}
+
+nav form {
+	display: inline-flex;
+}
+
+#float-right {
+	margin-left: auto;
+}
+
+#float-left {
+	margin-right: auto;
+}
+
+#chat {
+	border: #FFF solid;
+	padding: 2em;
 }
 
 input[type=submit] {
     text-shadow: #000 1px 1px 1px;
     text-align: center;
 	text-decoration: none;
-    background-color: #5865F2;
+    background-color: #7388D9;
     display: inline-block;
 	font-size: 1em;
 	text-decoration: none;
@@ -71,12 +90,12 @@ input[type=submit] {
 }
 
 input[type=submit]:hover {
-	background-color: #104080;
+	background-color: #6469BA;
 }
 
 span {
 	color: #F00;
-	font-size: 60%;
+	font-size: 80%;
 }
 
 table {
@@ -87,7 +106,7 @@ table {
     html {
         font-size: 16px;
     }
-  
+
     #content {
         width: auto;
         background-color: #000000;
