@@ -19,24 +19,21 @@ public class ChatDB {
 
 		String query = "INSERT INTO users (username, password, first_name, last_name, phone_number) "
 				+ "VALUES (?, ?, ?, ?, ?)";
-		PreparedStatement ps = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
-
-		ps.setString(1, user.getUsername());
-		ps.setString(2, user.getPassword());
-		ps.setString(3, user.getFirstName());
-		ps.setString(4, user.getLastName());
-		ps.setString(5, user.getPhoneNumber());
-
-		int rows = ps.executeUpdate();
-
-		ResultSet rs = ps.getGeneratedKeys();
-		if (rs.next()) {
-			int generatedId = rs.getInt(1);
-			user.setUserID(generatedId);
-		} // I need to do this because if you register and this isn't here, when you login you can't send messages bcus foreign keys
-
-		rs.close();
-		ps.close();
+		int rows;
+		try (PreparedStatement ps = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
+			ps.setString(1, user.getUsername());
+			ps.setString(2, user.getPassword());
+			ps.setString(3, user.getFirstName());
+			ps.setString(4, user.getLastName());
+			ps.setString(5, user.getPhoneNumber());
+			rows = ps.executeUpdate();
+			try (ResultSet rs = ps.getGeneratedKeys()) {
+				if (rs.next()) {
+					int generatedId = rs.getInt(1);
+					user.setUserID(generatedId);
+				} // I need to do this because if you register and this isn't here, when you login you can't send messages bcus foreign keys
+			}
+		}
 		pool.freeConnection(connection);
 
 		return rows;
@@ -45,8 +42,8 @@ public class ChatDB {
 	public static User selectUser(int userID) throws NamingException, SQLException {
 		ConnectionPool pool = ConnectionPool.getInstance();
 		Connection connection = pool.getConnection();
-		PreparedStatement ps = null;
-		ResultSet rs = null;
+		PreparedStatement ps;
+		ResultSet rs;
 		User user = null;
 
 		String query = "SELECT * FROM users "
@@ -76,8 +73,8 @@ public class ChatDB {
 	public static User selectUserByUsername(String username) throws NamingException, SQLException {
 		ConnectionPool pool = ConnectionPool.getInstance();
 		Connection connection = pool.getConnection();
-		PreparedStatement ps = null;
-		ResultSet rs = null;
+		PreparedStatement ps;
+		ResultSet rs;
 		User user = null;
 
 		String query = "SELECT * FROM users "
@@ -108,37 +105,42 @@ public class ChatDB {
 		User dbUser = selectUser(user.getUserID());
 		ConnectionPool pool = ConnectionPool.getInstance();
 		Connection connection = pool.getConnection();
-		PreparedStatement ps = null;
-		String query = "";
+		PreparedStatement ps;
+		String query;
 
 		if (dbUser.getPassword().equals(user.getPassword())) {
 			query = "UPDATE users "
-					+ "SET first_name = ?, "
-					+ "last_name = ?, "
-					+ "phone_number = ? "
-					+ "WHERE username = ?";
-			ps = connection.prepareStatement(query);
-			ps.setString(1, user.getFirstName());
-			ps.setString(2, user.getLastName());
-			ps.setString(3, user.getPhoneNumber());
-			ps.setString(4, user.getUsername());
-		} else {
-			query = "UPDATE users "
-					+ "SET password = ?, "
+					+ "SET username = ?, "
 					+ "first_name = ?, "
 					+ "last_name = ?, "
 					+ "phone_number = ? "
-					+ "WHERE username = ?";
-			ps.setString(1, user.getPassword());
+					+ "WHERE user_id = ?";
+			ps = connection.prepareStatement(query);
+			ps.setString(1, user.getUsername());
 			ps.setString(2, user.getFirstName());
 			ps.setString(3, user.getLastName());
 			ps.setString(4, user.getPhoneNumber());
-			ps.setString(5, user.getUsername());
+			ps.setInt(5, user.getUserID());
+		} else {
+			query = "UPDATE users "
+					+ "SET password = ?, "
+					+ "username = ?, "
+					+ "first_name = ?, "
+					+ "last_name = ?, "
+					+ "phone_number = ? "
+					+ "WHERE user_id = ?";
+			ps = connection.prepareStatement(query);
+			ps.setString(1, user.getPassword());
+			ps.setString(2, user.getUsername());
+			ps.setString(3, user.getFirstName());
+			ps.setString(4, user.getLastName());
+			ps.setString(5, user.getPhoneNumber());
+			ps.setInt(6, user.getUserID());
 		}
 
 		ps.executeUpdate();
-
 		ps.close();
+
 		pool.freeConnection(connection);
 		return user;
 	}
@@ -146,8 +148,8 @@ public class ChatDB {
 	public static String getPasswordForUsername(String username) throws NamingException, SQLException {
 		ConnectionPool pool = ConnectionPool.getInstance();
 		Connection connection = pool.getConnection();
-		PreparedStatement ps = null;
-		ResultSet rs = null;
+		PreparedStatement ps;
+		ResultSet rs;
 
 		String query = "SELECT password FROM users "
 				+ "WHERE username = ?";
@@ -171,8 +173,8 @@ public class ChatDB {
 		ArrayList<User> userList = new ArrayList<>();
 		ConnectionPool pool = ConnectionPool.getInstance();
 		Connection connection = pool.getConnection();
-		PreparedStatement ps = null;
-		ResultSet rs = null;
+		PreparedStatement ps;
+		ResultSet rs;
 
 		String query = "SELECT * FROM users";
 
@@ -199,7 +201,7 @@ public class ChatDB {
 	public static int insertMessage(Message message) throws NamingException, SQLException {
 		ConnectionPool pool = ConnectionPool.getInstance();
 		Connection connection = pool.getConnection();
-		PreparedStatement ps = null;
+		PreparedStatement ps;
 
 		String query
 				= "INSERT INTO messages(message_contents, to_user_id, from_user_id) "
@@ -221,8 +223,8 @@ public class ChatDB {
 	public static Message selectMessage(int messageID) throws NamingException, SQLException {
 		ConnectionPool pool = ConnectionPool.getInstance();
 		Connection connection = pool.getConnection();
-		PreparedStatement ps = null;
-		ResultSet rs = null;
+		PreparedStatement ps;
+		ResultSet rs;
 		Message message = null;
 
 		String query = "SELECT * FROM messages "
@@ -250,8 +252,8 @@ public class ChatDB {
 	public static LinkedHashMap<Integer, Message> selectAllMessagesFromUser(int userID) throws NamingException, SQLException {
 		ConnectionPool pool = ConnectionPool.getInstance();
 		Connection connection = pool.getConnection();
-		PreparedStatement ps = null;
-		ResultSet rs = null;
+		PreparedStatement ps;
+		ResultSet rs;
 		LinkedHashMap<Integer, Message> messages = new LinkedHashMap<>();
 
 		String query = "SELECT * FROM messages"
@@ -280,8 +282,8 @@ public class ChatDB {
 	public static LinkedHashMap<Integer, Message> selectAllMessagesFromUserByUsername(String username) throws NamingException, SQLException {
 		ConnectionPool pool = ConnectionPool.getInstance();
 		Connection connection = pool.getConnection();
-		PreparedStatement ps = null;
-		ResultSet rs = null;
+		PreparedStatement ps;
+		ResultSet rs;
 		LinkedHashMap<Integer, Message> messages = new LinkedHashMap<>();
 		String query = "SELECT * FROM messages"
 				+ " WHERE from_user_id = ?";
@@ -310,8 +312,8 @@ public class ChatDB {
 	public static LinkedHashMap<Integer, Message> selectAllMessagesToUser(int userID) throws NamingException, SQLException {
 		ConnectionPool pool = ConnectionPool.getInstance();
 		Connection connection = pool.getConnection();
-		PreparedStatement ps = null;
-		ResultSet rs = null;
+		PreparedStatement ps;
+		ResultSet rs;
 		LinkedHashMap<Integer, Message> messages = new LinkedHashMap<>();
 
 		String query = "SELECT * FROM messages "
@@ -340,8 +342,8 @@ public class ChatDB {
 	public static LinkedHashMap<Integer, Message> selectAllMessagesToUserByUsername(String username) throws NamingException, SQLException {
 		ConnectionPool pool = ConnectionPool.getInstance();
 		Connection connection = pool.getConnection();
-		PreparedStatement ps = null;
-		ResultSet rs = null;
+		PreparedStatement ps;
+		ResultSet rs;
 		LinkedHashMap<Integer, Message> messages = new LinkedHashMap<>();
 
 		String query = "SELECT * FROM messages"
@@ -373,12 +375,12 @@ public class ChatDB {
 		ConnectionPool pool = ConnectionPool.getInstance();
 		Connection connection = pool.getConnection();
 		PreparedStatement ps = null;
-		String query = "";
+		String query;
 
 		if (dbUser == null || user.getUsername().equals("admin")) {
 			query = "UPDATE messages "
-					+ "SET message_contents = ?,"
-					+ "to_user_id = ?,"
+					+ "SET message_contents = ?, "
+					+ "to_user_id = ? "
 					+ "WHERE from_user_id = ?";
 			ps = connection.prepareStatement(query);
 			ps.setString(1, message.getMessageContents());

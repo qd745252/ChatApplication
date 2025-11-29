@@ -21,17 +21,17 @@
     <body>
 		<c:import url="nav.jsp"/>
 		<div id="container">
-			<h1>Welkom bij onze website, <c:out value='${loggedInUser.username}' /></h1>
+			<h1>Welcome to our website, <c:out value='${loggedInUser.username}' /></h1>
 
-			<h3>Gebruikersnaam: <c:out value="${loggedInUser.username}" /></h3>
-			<p>Eerstennaam: <c:out value="${loggedInUser.firstName}" /></p>
-			<p>Laatsteennaam: <c:out value="${loggedInUser.lastName}" /></p>
+			<h3>Username: <c:out value="${loggedInUser.username}" /></h3>
+			<p>First Name: <c:out value="${loggedInUser.firstName}" /></p>
+			<p>Last Name: <c:out value="${loggedInUser.lastName}" /></p>
 			<c:if test="${not empty loggedInUser.phoneNumber}">
-				<p>Telefoonnummer: <c:out value="${loggedInUser.phoneNumber}" /></p>
+				<p>Phone Number: <c:out value="${loggedInUser.phoneNumber}" /></p>
 			</c:if>
 			<br>
 			<form action="Private" method="post">
-				<input type="hidden" name="action" value="editUser">
+				<input type="hidden" name="action" value="gotoEditUser">
 				<input type="submit" value="Edit Profile">
 			</form>
 		</div>

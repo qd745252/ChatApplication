@@ -17,6 +17,7 @@ import models.User;
 import util.Validation;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import util.PasswordEncryption;
 
 public class Private extends HttpServlet {
 
@@ -62,6 +63,10 @@ public class Private extends HttpServlet {
 				}
 				response.sendRedirect("index.jsp");
 				return;
+			}
+			case "gotoEditUser": {
+				url = "/editUser.jsp";
+				break;
 			}
 			case "gotoMessages": {
 				url = "/messages.jsp";
@@ -132,10 +137,96 @@ public class Private extends HttpServlet {
 				}
 				break;
 			}
+			case "editUser": {
+				LinkedHashMap<String, String> errors = new LinkedHashMap<>();
+				User newUser = new User();
+
+				String newUsername = request.getParameter("newUsername");
+				String newPassword = request.getParameter("newPassword");
+				String newFirstName = request.getParameter("newFirstName");
+				String newLastName = request.getParameter("newLastName");
+				String newPhoneNumber = request.getParameter("newPhoneNumber");
+				String currentPassword = request.getParameter("currentPassword");
+
+
+				boolean currentPasswordMatches = false;
+				if (PasswordEncryption.checkPassword(currentPassword, loggedInUser.getPassword())) {
+					currentPasswordMatches = true;
+				} else {
+					errors.put("currentPassword", "Current password does not match");
+				}
+
+				errors.put("newFirstName", Validation.validateFirstName(newFirstName));
+				errors.put("newLastName", Validation.validateLastName(newLastName));
+				errors.put("newPhoneNumber", Validation.validatePhoneNumber(newPhoneNumber));
+
+				boolean isValid = true;
+				newUser.setUserID(loggedInUser.getUserID());
+
+				if (newUsername == null || newUsername.isBlank()) {
+					isValid = false;
+					errors.put("newUsername", "Please enter a username");
+				} else {
+					newUser.setUsername(newUsername.toLowerCase());
+				}
+
+				if (errors.get("newFirstName").isBlank()) {
+					newUser.setFirstName(newFirstName);
+				} else {
+					isValid = false;
+				}
+
+				if (errors.get("newLastName").isBlank()) {
+					newUser.setLastName(newLastName);
+				} else {
+					isValid = false;
+				}
+
+				if (errors.get("newPhoneNumber").isBlank()) {
+					String cleanedNewPhoneNumber = newPhoneNumber.replaceAll("[^0-9]", "");
+					newUser.setPhoneNumber(cleanedNewPhoneNumber);
+				} else {
+					isValid = false;
+				}
+
+				if (newPassword == null || newPassword.isBlank()) {
+					newUser.setPassword(loggedInUser.getPassword());
+				} else {
+					if (currentPassword == null || currentPassword.isBlank() || !currentPasswordMatches) {
+						errors.put("currentPassword", "Current password is incorrect");
+						isValid = false;
+					} else {
+						String passwordValidationError = Validation.validatePassword(newPassword);
+						if (passwordValidationError.isBlank()) {
+							newUser.setPassword(PasswordEncryption.hashPassword(newPassword));
+						} else {
+							errors.put("newPassword", passwordValidationError);
+							isValid = false;
+						}
+					}
+				}
+
+				if (isValid) {
+					try {
+						ChatDB.updateUser(newUser);
+						request.getSession().setAttribute("loggedInUser", newUser);
+					} catch (NamingException | SQLException ex) {
+						Logger.getLogger(Public.class.getName()).log(Level.SEVERE, null, ex);
+					}
+				} else {
+					url = "/editUser.jsp";
+					request.setAttribute("errors", errors);
+					request.setAttribute("newUsername", newUsername);
+					request.setAttribute("newFirstName", newFirstName);
+					request.setAttribute("newLastName", newLastName);
+					request.setAttribute("newPhoneNumber", newPhoneNumber);
+				}
+				break;
+			}
+
 		}
 
-		getServletContext()
-				.getRequestDispatcher(url).forward(request, response);
+		getServletContext().getRequestDispatcher(url).forward(request, response);
 	}
 
 	@Override
