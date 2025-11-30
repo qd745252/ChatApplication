@@ -149,10 +149,10 @@ public class ChatDB {
 		ConnectionPool pool = ConnectionPool.getInstance();
 		Connection connection = pool.getConnection();
 		PreparedStatement ps;
+		int rows;
 
 		String query = "DELETE FROM users "
 				+ "WHERE user_id = ?";
-		int rows;
 
 		ps = connection.prepareStatement(query);
 		ps.setInt(1, userID);
@@ -411,5 +411,23 @@ public class ChatDB {
 		ps.close();
 		pool.freeConnection(connection);
 		return message;
+	}
+
+	public static int deleteMessage(int messageID) throws NamingException, SQLException {
+		ConnectionPool pool = ConnectionPool.getInstance();
+		Connection connection = pool.getConnection();
+		PreparedStatement ps;
+		int rows;
+
+		String query = "DELETE FROM messages "
+				+ "WHERE message_id = ?";
+
+		ps = connection.prepareStatement(query);
+		ps.setInt(1, messageID);
+
+		rows = ps.executeUpdate();
+		pool.freeConnection(connection);
+
+		return rows;
 	}
 }

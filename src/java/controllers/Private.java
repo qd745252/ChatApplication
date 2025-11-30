@@ -61,8 +61,8 @@ public class Private extends HttpServlet {
 				if (session != null) {
 					session.invalidate();
 				}
-				response.sendRedirect("index.jsp");
-				return;
+				url = "/Public";
+				break;
 			}
 			case "gotoEditUser": {
 				url = "/editUser.jsp";
@@ -73,7 +73,7 @@ public class Private extends HttpServlet {
 				try {
 					LinkedHashMap<Integer, Message> toUserMessages = ChatDB.selectAllMessagesToUser(loggedInUser.getUserID());
 					LinkedHashMap<Integer, Message> fromUserMessages = ChatDB.selectAllMessagesFromUser(loggedInUser.getUserID());
-
+					
 					ArrayList<Message> allMessages = new ArrayList<>();
 					allMessages.addAll(toUserMessages.values());
 					allMessages.addAll(fromUserMessages.values());
@@ -81,17 +81,21 @@ public class Private extends HttpServlet {
 					allMessages.sort(Comparator.comparingInt(Message::getMessageID));
 
 					LinkedHashMap<Integer, Message> sortedMessagesHashMap = new LinkedHashMap<>();
-					for (Message message : allMessages) {
+					allMessages.forEach(message -> {
 						sortedMessagesHashMap.put(message.getMessageID(), message);
-					}
+					});
 
 					request.setAttribute("messages", sortedMessagesHashMap);
 				} catch (NamingException | SQLException ex) {
 					Logger.getLogger(Public.class.getName()).log(Level.SEVERE, null, ex);
+					LinkedHashMap<String, String> errors = new LinkedHashMap<>();
+					errors.put("sqlError", "There is a problem with the database, please contact your Administrator");
+					request.setAttribute("errors", errors);
 					url = "/Public";
 				}
 				break;
 			}
+
 			case "sendMessage": {
 				url = "/Private?action=gotoMessages";
 				LinkedHashMap<String, String> errors = new LinkedHashMap<>();
@@ -198,6 +202,8 @@ public class Private extends HttpServlet {
 							}
 						} catch (NamingException | SQLException ex) {
 							Logger.getLogger(Public.class.getName()).log(Level.SEVERE, null, ex);
+							errors.put("sqlError", "There is a problem with the database, please contact your Administrator");
+							request.setAttribute("errors", errors);
 							url = "/Public";
 						}
 					} else {
@@ -259,6 +265,10 @@ public class Private extends HttpServlet {
 						request.getSession().setAttribute("loggedInUser", newUser);
 					} catch (NamingException | SQLException ex) {
 						Logger.getLogger(Public.class.getName()).log(Level.SEVERE, null, ex);
+						errors.put("sqlError", "There is a problem with the database, please contact your Administrator");
+						request.setAttribute("errors", errors);
+
+						url = "/index.jsp";
 					}
 				} else {
 					url = "/editUser.jsp";
@@ -281,12 +291,34 @@ public class Private extends HttpServlet {
 
 					if ((isAdmin && !isSelf) || (!isAdmin && isSelf)) {
 						try {
+							LinkedHashMap<Integer, Message> fromMessages = ChatDB.selectAllMessagesFromUser(userID);
+							LinkedHashMap<Integer, Message> toMessages = ChatDB.selectAllMessagesToUser(userID);
+
+							fromMessages.forEach((id, message) -> {
+								try {
+									ChatDB.deleteMessage(id);
+								} catch (NamingException | SQLException ex) {
+									Logger.getLogger(Public.class.getName()).log(Level.SEVERE, null, ex);
+								}
+							});
+
+							toMessages.forEach((id, message) -> {
+								try {
+									ChatDB.deleteMessage(id);
+								} catch (NamingException | SQLException ex) {
+									Logger.getLogger(Public.class.getName()).log(Level.SEVERE, null, ex);
+								}
+							});
+
 							ChatDB.deleteUser(userID);
 						} catch (NamingException | SQLException ex) {
 							Logger.getLogger(Public.class.getName()).log(Level.SEVERE, null, ex);
+							LinkedHashMap<String, String> errors = new LinkedHashMap<>();
+							errors.put("sqlError", "There is a problem with the database, please contact your Administrator");
+							request.setAttribute("errors", errors);
 						}
-						response.sendRedirect("Public");
-						return;
+						url = "/Public";
+						break;
 					}
 				}
 				url = "/editUser.jsp";

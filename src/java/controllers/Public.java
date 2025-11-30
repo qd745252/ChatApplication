@@ -60,10 +60,14 @@ public class Public extends HttpServlet {
 					} else {
 						loggedInUser = ChatDB.selectUserByUsername(username);
 						request.getSession().setAttribute("loggedInUser", loggedInUser);
-						url = "/Private";
+						url = "/profile.jsp";
 					}
 				} catch (NamingException | SQLException ex) {
 					Logger.getLogger(Public.class.getName()).log(Level.SEVERE, null, ex);
+					LinkedHashMap<String, String> errors = new LinkedHashMap<>();
+					errors.put("sqlError", "There is a problem with the database, please contact your Administrator");
+					request.setAttribute("errors", errors);
+					url = "/index.jsp";
 				}
 				break;
 			}
@@ -103,7 +107,8 @@ public class Public extends HttpServlet {
 						}
 					} catch (NamingException | SQLException ex) {
 						Logger.getLogger(Public.class.getName()).log(Level.SEVERE, null, ex);
-						errors.put("username", "Error checking username availability");
+						errors.put("sqlError", "There is a problem with the database, please contact your Administrator");
+						request.setAttribute("errors", errors);
 						isValid = false;
 					}
 				} else {
@@ -132,14 +137,16 @@ public class Public extends HttpServlet {
 					isValid = false;
 				}
 
+				url = "/index.jsp";
+
 				if (isValid) {
 					try {
 						ChatDB.insertUser(user);
 						request.getSession().setAttribute("loggedInUser", user);
 						url = "/Private";
 					} catch (NamingException | SQLException ex) {
-						Logger.getLogger(Public.class.getName()).log(Level.SEVERE, null, ex); //this should literally never happen but just in case go back to public and log in terminal
-						url = "/index.jsp";
+						Logger.getLogger(Public.class.getName()).log(Level.SEVERE, null, ex);
+						errors.put("sqlError", "There is a problem with the database, please contact your Administrator");
 					}
 				} else {
 					request.setAttribute("errors", errors);
