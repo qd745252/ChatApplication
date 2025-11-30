@@ -9,6 +9,12 @@
 		response.sendRedirect("Public");
 		return;
 	}
+
+	String formattedPhoneNumber = String.format("(%s) %s-%s",
+			loggedInUser.getPhoneNumber().substring(0, 3),
+			loggedInUser.getPhoneNumber().substring(3, 6),
+			loggedInUser.getPhoneNumber().substring(6, 10));
+	request.setAttribute("formattedPhoneNumber", formattedPhoneNumber);
 %>
 
 <!DOCTYPE html>
@@ -27,7 +33,7 @@
 			<p>First Name: <c:out value="${loggedInUser.firstName}" /></p>
 			<p>Last Name: <c:out value="${loggedInUser.lastName}" /></p>
 			<c:if test="${not empty loggedInUser.phoneNumber}">
-				<p>Phone Number: <c:out value="${loggedInUser.phoneNumber}" /></p>
+				<p>Phone Number: <c:out value="${formattedPhoneNumber}" /></p>
 			</c:if>
 			<br>
 			<form action="Private" method="post">

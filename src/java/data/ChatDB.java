@@ -145,6 +145,24 @@ public class ChatDB {
 		return user;
 	}
 
+	public static int deleteUser(int userID) throws NamingException, SQLException {
+		ConnectionPool pool = ConnectionPool.getInstance();
+		Connection connection = pool.getConnection();
+		PreparedStatement ps;
+
+		String query = "DELETE FROM users "
+				+ "WHERE user_id = ?";
+		int rows;
+
+		ps = connection.prepareStatement(query);
+		ps.setInt(1, userID);
+
+		rows = ps.executeUpdate();
+		pool.freeConnection(connection);
+
+		return rows;
+	}
+
 	public static String getPasswordForUsername(String username) throws NamingException, SQLException {
 		ConnectionPool pool = ConnectionPool.getInstance();
 		Connection connection = pool.getConnection();

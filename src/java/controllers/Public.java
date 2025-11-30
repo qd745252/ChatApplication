@@ -62,7 +62,6 @@ public class Public extends HttpServlet {
 						request.getSession().setAttribute("loggedInUser", loggedInUser);
 						url = "/Private";
 					}
-
 				} catch (NamingException | SQLException ex) {
 					Logger.getLogger(Public.class.getName()).log(Level.SEVERE, null, ex);
 				}
@@ -90,11 +89,27 @@ public class Public extends HttpServlet {
 				errors.put("phoneNumber", Validation.validatePhoneNumber(phoneNumber));
 
 				boolean isValid = true;
-				if (errors.get("username").isBlank()) {
-					user.setUsername(username.toLowerCase());
+
+				String usernameValidationMsg = Validation.validateUsername(username);
+				errors.put("username", usernameValidationMsg);
+
+				if (usernameValidationMsg.isBlank()) {
+					try {
+						if (ChatDB.selectUserByUsername(username) != null) {
+							errors.put("username", "Username is taken");
+							isValid = false;
+						} else {
+							user.setUsername(username.toLowerCase());
+						}
+					} catch (NamingException | SQLException ex) {
+						Logger.getLogger(Public.class.getName()).log(Level.SEVERE, null, ex);
+						errors.put("username", "Error checking username availability");
+						isValid = false;
+					}
 				} else {
 					isValid = false;
 				}
+
 				if (errors.get("password").isBlank()) {
 					user.setPassword(hashedPassword);
 				} else {
@@ -124,7 +139,7 @@ public class Public extends HttpServlet {
 						url = "/Private";
 					} catch (NamingException | SQLException ex) {
 						Logger.getLogger(Public.class.getName()).log(Level.SEVERE, null, ex); //this should literally never happen but just in case go back to public and log in terminal
-						url = "/Public";
+						url = "/index.jsp";
 					}
 				} else {
 					request.setAttribute("errors", errors);

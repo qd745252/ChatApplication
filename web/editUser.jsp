@@ -56,16 +56,23 @@
 					<br>
 				</p>
 				<br>
-				<p>Enter current password to apply changes or to delete your account</p>
+				<p>Enter current password to apply changes</p>
 				<p>Current Password: <input type="password" name="currentPassword"></p>
 				<span>${errors['currentPassword']}</span>
 				<br>
 				<br>
 				<input type="submit" value="Apply Changes">
 			</form>
-			<form action='Private' method='post'>
+			<br>
+			<form action='Private' method='post' onsubmit="return confirm('Are you sure you want to delete this user?');">
 				<input type='hidden' name='action' value='deleteUser'>
+				<input type="hidden" name="userID" value="<c:out value="${loggedInUser.userID}" />">
 				<input id='delete' type='submit' value="Delete User">
+			</form>
+			<br>
+			<form action='Private' method='post'>
+				<input type='hidden' name='action' value='gotoProfile'>
+				<input type='submit' value="Back">
 			</form>
 		</div>
 	</body>

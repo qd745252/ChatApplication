@@ -16,16 +16,10 @@ public class Validation {
 
 	public static String validateUsername(String username) {
 		String error = "";
-		try {
-			if (username == null || username.isBlank()) {
-				error = "Please enter a username";
-			} else if (ChatDB.selectUserByUsername(username) != null) {
-				error = "Username taken";
-			} else if (username.length() < 4 || username.length() > 30) {
-				error = "Username must be between 4 and 30 characters";
-			}
-		} catch (NamingException | SQLException ex) {
-			Logger.getLogger(Validation.class.getName()).log(Level.SEVERE, null, ex);
+		if (username == null || username.isBlank()) {
+			error = "Please enter a username";
+		} else if (username.length() < 4 || username.length() > 30) {
+			error = "Username must be between 4 and 30 characters";
 		}
 		return error;
 	}

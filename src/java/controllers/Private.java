@@ -141,6 +141,8 @@ public class Private extends HttpServlet {
 				LinkedHashMap<String, String> errors = new LinkedHashMap<>();
 				User newUser = new User();
 
+				newUser.setUserID(loggedInUser.getUserID());
+
 				String newUsername = request.getParameter("newUsername");
 				String newPassword = request.getParameter("newPassword");
 				String newFirstName = request.getParameter("newFirstName");
@@ -148,65 +150,110 @@ public class Private extends HttpServlet {
 				String newPhoneNumber = request.getParameter("newPhoneNumber");
 				String currentPassword = request.getParameter("currentPassword");
 
+				boolean isAnyFieldUpdated = false;
+
+				String finalFirstName = (newFirstName != null && !newFirstName.isBlank()) ? newFirstName : loggedInUser.getFirstName();
+				String finalLastName = (newLastName != null && !newLastName.isBlank()) ? newLastName : loggedInUser.getLastName();
+				String finalPhoneNumber = (newPhoneNumber != null && !newPhoneNumber.isBlank()) ? newPhoneNumber : loggedInUser.getPhoneNumber();
+
+				if (newUsername != null && !newUsername.isBlank()) {
+					isAnyFieldUpdated = true;
+				}
+				if (newFirstName != null && !newFirstName.isBlank()) {
+					isAnyFieldUpdated = true;
+				}
+				if (newLastName != null && !newLastName.isBlank()) {
+					isAnyFieldUpdated = true;
+				}
+				if (newPhoneNumber != null && !newPhoneNumber.isBlank()) {
+					isAnyFieldUpdated = true;
+				}
+				if (newPassword != null && !newPassword.isBlank()) {
+					isAnyFieldUpdated = true;
+				}
 
 				boolean currentPasswordMatches = false;
-				if (PasswordEncryption.checkPassword(currentPassword, loggedInUser.getPassword())) {
-					currentPasswordMatches = true;
-				} else {
-					errors.put("currentPassword", "Current password does not match");
+
+				if (isAnyFieldUpdated) {
+					if (currentPassword == null || currentPassword.isBlank()) {
+						errors.put("currentPassword", "Current password is required to make changes");
+					} else if (PasswordEncryption.checkPassword(currentPassword, loggedInUser.getPassword())) {
+						currentPasswordMatches = true;
+					} else {
+						errors.put("currentPassword", "Current password does not match");
+					}
 				}
 
-				errors.put("newFirstName", Validation.validateFirstName(newFirstName));
-				errors.put("newLastName", Validation.validateLastName(newLastName));
-				errors.put("newPhoneNumber", Validation.validatePhoneNumber(newPhoneNumber));
-
-				boolean isValid = true;
-				newUser.setUserID(loggedInUser.getUserID());
-
-				if (newUsername == null || newUsername.isBlank()) {
-					isValid = false;
-					errors.put("newUsername", "Please enter a username");
+				if (newUsername != null && !newUsername.isBlank()) {
+					String usernameValidationError = Validation.validateUsername(newUsername);
+					if (!usernameValidationError.isBlank()) {
+						errors.put("newUsername", usernameValidationError);
+					} else if (!newUsername.equalsIgnoreCase(loggedInUser.getUsername())) {
+						try {
+							User existingUser = ChatDB.selectUserByUsername(newUsername.toLowerCase());
+							if (existingUser != null && existingUser.getUserID() != loggedInUser.getUserID()) {
+								errors.put("newUsername", "This username is already in use.");
+							} else {
+								newUser.setUsername(newUsername.toLowerCase());
+							}
+						} catch (NamingException | SQLException ex) {
+							Logger.getLogger(Public.class.getName()).log(Level.SEVERE, null, ex);
+							url = "/Public";
+						}
+					} else {
+						newUser.setUsername(loggedInUser.getUsername());
+					}
 				} else {
-					newUser.setUsername(newUsername.toLowerCase());
+					newUser.setUsername(loggedInUser.getUsername());
 				}
 
-				if (errors.get("newFirstName").isBlank()) {
-					newUser.setFirstName(newFirstName);
+				String firstNameError = Validation.validateFirstName(finalFirstName);
+				if (firstNameError.isBlank()) {
+					newUser.setFirstName(finalFirstName);
 				} else {
-					isValid = false;
+					errors.put("newFirstName", firstNameError);
 				}
 
-				if (errors.get("newLastName").isBlank()) {
-					newUser.setLastName(newLastName);
+				String lastNameError = Validation.validateLastName(finalLastName);
+				if (lastNameError.isBlank()) {
+					newUser.setLastName(finalLastName);
 				} else {
-					isValid = false;
+					errors.put("newLastName", lastNameError);
 				}
 
-				if (errors.get("newPhoneNumber").isBlank()) {
-					String cleanedNewPhoneNumber = newPhoneNumber.replaceAll("[^0-9]", "");
-					newUser.setPhoneNumber(cleanedNewPhoneNumber);
+				String phoneError = Validation.validatePhoneNumber(finalPhoneNumber);
+				if (phoneError.isBlank()) {
+					String cleanedPhone = finalPhoneNumber.replaceAll("[^0-9]", "");
+					newUser.setPhoneNumber(cleanedPhone);
 				} else {
-					isValid = false;
+					errors.put("newPhoneNumber", phoneError);
 				}
 
-				if (newPassword == null || newPassword.isBlank()) {
-					newUser.setPassword(loggedInUser.getPassword());
-				} else {
-					if (currentPassword == null || currentPassword.isBlank() || !currentPasswordMatches) {
-						errors.put("currentPassword", "Current password is incorrect");
-						isValid = false;
+				if (newPassword != null && !newPassword.isBlank()) {
+					if (isAnyFieldUpdated) {
+						if (!currentPasswordMatches) {
+							errors.put("currentPassword", "Current password is incorrect");
+						} else {
+							String passwordValidationError = Validation.validatePassword(newPassword);
+							if (passwordValidationError.isBlank()) {
+								newUser.setPassword(PasswordEncryption.hashPassword(newPassword));
+							} else {
+								errors.put("newPassword", passwordValidationError);
+							}
+						}
 					} else {
 						String passwordValidationError = Validation.validatePassword(newPassword);
 						if (passwordValidationError.isBlank()) {
 							newUser.setPassword(PasswordEncryption.hashPassword(newPassword));
 						} else {
 							errors.put("newPassword", passwordValidationError);
-							isValid = false;
 						}
 					}
+				} else {
+					newUser.setPassword(loggedInUser.getPassword());
 				}
 
-				if (isValid) {
+				if (errors.isEmpty() && (isAnyFieldUpdated || newPassword != null && !newPassword.isBlank())) {
 					try {
 						ChatDB.updateUser(newUser);
 						request.getSession().setAttribute("loggedInUser", newUser);
@@ -223,9 +270,37 @@ public class Private extends HttpServlet {
 				}
 				break;
 			}
+			case "deleteUser": {
+				int userID = (request.getParameter("userID") != null) ? Integer.parseInt(request.getParameter("userID")) : -1;
 
+				if (userID > 0) {
+					String username = loggedInUser.getUsername();
+
+					boolean isAdmin = username.equals("admin");
+					boolean isSelf = (loggedInUser.getUserID() == userID);
+
+					if ((isAdmin && !isSelf) || (!isAdmin && isSelf)) {
+						try {
+							ChatDB.deleteUser(userID);
+						} catch (NamingException | SQLException ex) {
+							Logger.getLogger(Public.class.getName()).log(Level.SEVERE, null, ex);
+						}
+						response.sendRedirect("Public");
+						return;
+					}
+				}
+				url = "/editUser.jsp";
+				break;
+			}
+			case "viewAllUsers": {
+				url = "/allUsers.jsp";
+				break;
+			}
+			case "viewAllMessages": {
+				url = "/allMessages.jsp";
+				break;
+			}
 		}
-
 		getServletContext().getRequestDispatcher(url).forward(request, response);
 	}
 
