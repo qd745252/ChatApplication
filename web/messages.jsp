@@ -4,10 +4,11 @@
     Author     : creepergd
 --%>
 
-<%@page import="data.ChatDB"%>
 <%@page import="models.User"%>
+<%@page import="data.ChatDB"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%
+	// this is there to prevent people from injecting it into the URL
 	User loggedInUser = (User) request.getSession().getAttribute("loggedInUser");
 
 	if (loggedInUser == null) {
@@ -50,7 +51,7 @@
 				<br>
 				<span>${errors["toAndFromUserIDs"]}</span>
 				<br>
-				<input type="text" name="messageContents" placeholder="Enter Message Here" value="<c:out value='${messageContents}' />">
+				<textarea name="messageContents" placeholder="Enter Message Here" rows="5" cols="50"><c:out value='${messageContents}' /></textarea>
 				<br>
 				<span>${errors["messageContents"]}</span>
 				<br>

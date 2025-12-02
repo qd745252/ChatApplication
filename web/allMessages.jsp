@@ -3,18 +3,17 @@
     Created on : 26 nov 2025, 18:18:29
     Author     : creepergd
 --%>
-<%@page import="data.ChatDB"%>
 <%@page import="models.User"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%
+	// this is there to prevent people from injecting it into the URL
 	User loggedInUser = (User) request.getSession().getAttribute("loggedInUser");
 
-	if (loggedInUser == null && !loggedInUser.getUsername().equals("admin")) {
+	if (loggedInUser == null || !loggedInUser.getUsername().equals("admin")) {
 		response.sendRedirect("Public");
 		return;
 	}
 %>
-
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html>

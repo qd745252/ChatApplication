@@ -24,7 +24,7 @@ public class Public extends HttpServlet {
 		String url = "/index.jsp";
 
 		HttpSession session = request.getSession(false);
-		User loggedInUser = null;
+		User loggedInUser;
 		if (session != null) {
 			loggedInUser = (User) session.getAttribute("loggedInUser");
 			if (loggedInUser != null) {
@@ -32,12 +32,10 @@ public class Public extends HttpServlet {
 					User userInDB = ChatDB.selectUser(loggedInUser.getUserID());
 					if (userInDB == null) {
 						session.invalidate();
-						loggedInUser = null;
 					}
 				} catch (NamingException | SQLException ex) {
 					Logger.getLogger(Public.class.getName()).log(Level.SEVERE, null, ex);
 					session.invalidate();
-					loggedInUser = null;
 				}
 			}
 		}

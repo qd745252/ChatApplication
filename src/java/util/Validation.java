@@ -56,8 +56,7 @@ public class Validation {
 		String error = "";
 		if (firstName == null || firstName.isBlank()) {
 			error = "Please enter a first name";
-		}
-		if (firstName.length() > 25) {
+		} else if (firstName.length() > 25) {
 			error = "First name is too long";
 		}
 		return error;
@@ -67,8 +66,7 @@ public class Validation {
 		String error = "";
 		if (lastName == null || lastName.isBlank()) {
 			error = "Please enter a last name";
-		}
-		if (lastName.length() > 25) {
+		} else if (lastName.length() > 25) {
 			error = "First name is too long";
 		}
 		return error;

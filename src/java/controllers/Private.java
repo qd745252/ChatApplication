@@ -65,6 +65,9 @@ public class Private extends HttpServlet {
 				break;
 			}
 			case "gotoEditUser": {
+				int userID = (request.getParameter("userID") != null) ? Integer.parseInt(request.getParameter("userID")) : -1;
+				request.setAttribute("userID", userID);
+
 				url = "/editUser.jsp";
 				break;
 			}
@@ -73,7 +76,7 @@ public class Private extends HttpServlet {
 				try {
 					LinkedHashMap<Integer, Message> toUserMessages = ChatDB.selectAllMessagesToUser(loggedInUser.getUserID());
 					LinkedHashMap<Integer, Message> fromUserMessages = ChatDB.selectAllMessagesFromUser(loggedInUser.getUserID());
-					
+
 					ArrayList<Message> allMessages = new ArrayList<>();
 					allMessages.addAll(toUserMessages.values());
 					allMessages.addAll(fromUserMessages.values());
@@ -106,7 +109,7 @@ public class Private extends HttpServlet {
 
 					String toUsername = request.getParameter("toUsername");
 					int toUserID = -1;
-					User toUser = null;
+					User toUser;
 
 					if (toUsername == null || toUsername.isBlank()) {
 						errors.put("toAndFromUserIDs", "Please enter a recipient user");
@@ -125,6 +128,10 @@ public class Private extends HttpServlet {
 					if (messageContents == null || messageContents.isBlank()) {
 						errors.put("messageContents", "Message cannot be empty");
 					}
+					
+					if (messageContents.length() > 255) {
+						errors.put("messageContents", "Message cannot be over 255 characters");
+					}
 
 					if (errors.isEmpty()) {
 						ChatDB.insertMessage(new Message(messageContents, toUserID, fromUserID));
@@ -142,10 +149,35 @@ public class Private extends HttpServlet {
 				break;
 			}
 			case "editUser": {
+				url = "/profile.jsp";
+				int userID = (request.getParameter("userID") != null) ? Integer.parseInt(request.getParameter("userID")) : -1;
 				LinkedHashMap<String, String> errors = new LinkedHashMap<>();
-				User newUser = new User();
 
-				newUser.setUserID(loggedInUser.getUserID());
+				boolean isAdmin = loggedInUser.getUsername().equals("admin");
+				boolean isSelf = (loggedInUser.getUserID() == userID);
+				if (!(isAdmin || isSelf)) {
+					errors.put("accessError", "You do not have permission to edit this user");
+					request.setAttribute("errors", errors);
+					url = "/index.jsp";
+					break;
+				}
+
+				User targetUser;
+				try {
+					targetUser = ChatDB.selectUser(userID);
+					if (targetUser == null) {
+						errors.put("sqlError", "User not found");
+						request.setAttribute("errors", errors);
+						url = "/index.jsp";
+						break;
+					}
+				} catch (NamingException | SQLException ex) {
+					Logger.getLogger(Public.class.getName()).log(Level.SEVERE, null, ex);
+					errors.put("sqlError", "There is a problem with the database, please contact your Administrator");
+					request.setAttribute("errors", errors);
+					url = "/index.jsp";
+					break;
+				}
 
 				String newUsername = request.getParameter("newUsername");
 				String newPassword = request.getParameter("newPassword");
@@ -156,81 +188,80 @@ public class Private extends HttpServlet {
 
 				boolean isAnyFieldUpdated = false;
 
-				String finalFirstName = (newFirstName != null && !newFirstName.isBlank()) ? newFirstName : loggedInUser.getFirstName();
-				String finalLastName = (newLastName != null && !newLastName.isBlank()) ? newLastName : loggedInUser.getLastName();
-				String finalPhoneNumber = (newPhoneNumber != null && !newPhoneNumber.isBlank()) ? newPhoneNumber : loggedInUser.getPhoneNumber();
-
-				if (newUsername != null && !newUsername.isBlank()) {
+				if (newUsername != null && !newUsername.isBlank() && !newUsername.equalsIgnoreCase(targetUser.getUsername())) {
 					isAnyFieldUpdated = true;
 				}
-				if (newFirstName != null && !newFirstName.isBlank()) {
+				if (newFirstName != null && !newFirstName.isBlank() && !newFirstName.equalsIgnoreCase(targetUser.getFirstName())) {
 					isAnyFieldUpdated = true;
 				}
-				if (newLastName != null && !newLastName.isBlank()) {
+				if (newLastName != null && !newLastName.isBlank() && !newLastName.equalsIgnoreCase(targetUser.getLastName())) {
 					isAnyFieldUpdated = true;
 				}
-				if (newPhoneNumber != null && !newPhoneNumber.isBlank()) {
+				if (newPhoneNumber != null && !newPhoneNumber.isBlank() && !newPhoneNumber.equals(targetUser.getPhoneNumber())) {
 					isAnyFieldUpdated = true;
 				}
-				if (newPassword != null && !newPassword.isBlank()) {
+				if (newPassword != null && !newPassword.isBlank() && !PasswordEncryption.checkPassword(newPassword, targetUser.getPassword())) {
 					isAnyFieldUpdated = true;
 				}
 
 				boolean currentPasswordMatches = false;
 
-				if (isAnyFieldUpdated) {
-					if (currentPassword == null || currentPassword.isBlank()) {
-						errors.put("currentPassword", "Current password is required to make changes");
-					} else if (PasswordEncryption.checkPassword(currentPassword, loggedInUser.getPassword())) {
-						currentPasswordMatches = true;
-					} else {
-						errors.put("currentPassword", "Current password does not match");
-					}
+				if (currentPassword == null || currentPassword.isBlank()) {
+					errors.put("currentPassword", "Current password is required to make changes");
+				} else if (PasswordEncryption.checkPassword(currentPassword, loggedInUser.getPassword())) { //logged in user because admin or user can edit this
+					currentPasswordMatches = true;
+				} else {
+					errors.put("currentPassword", "Current password does not match");
 				}
 
 				if (newUsername != null && !newUsername.isBlank()) {
-					String usernameValidationError = Validation.validateUsername(newUsername);
-					if (!usernameValidationError.isBlank()) {
-						errors.put("newUsername", usernameValidationError);
-					} else if (!newUsername.equalsIgnoreCase(loggedInUser.getUsername())) {
-						try {
-							User existingUser = ChatDB.selectUserByUsername(newUsername.toLowerCase());
-							if (existingUser != null && existingUser.getUserID() != loggedInUser.getUserID()) {
-								errors.put("newUsername", "This username is already in use.");
-							} else {
-								newUser.setUsername(newUsername.toLowerCase());
-							}
-						} catch (NamingException | SQLException ex) {
-							Logger.getLogger(Public.class.getName()).log(Level.SEVERE, null, ex);
-							errors.put("sqlError", "There is a problem with the database, please contact your Administrator");
-							request.setAttribute("errors", errors);
-							url = "/Public";
-						}
+					if (isAdmin && isSelf && !newUsername.equalsIgnoreCase("admin")) {
+						errors.put("newUsername", "Admin user cannot change their username.");
+						targetUser.setUsername(targetUser.getUsername());
 					} else {
-						newUser.setUsername(loggedInUser.getUsername());
+						String usernameValidationError = Validation.validateUsername(newUsername);
+						if (!usernameValidationError.isBlank()) {
+							errors.put("newUsername", usernameValidationError);
+						} else if (!newUsername.equalsIgnoreCase(targetUser.getUsername())) {
+							try {
+								User existingUser = ChatDB.selectUserByUsername(newUsername.toLowerCase());
+								if (existingUser != null && existingUser.getUserID() != targetUser.getUserID()) {
+									errors.put("newUsername", "This username is already in use.");
+								} else {
+									targetUser.setUsername(newUsername.toLowerCase());
+								}
+							} catch (NamingException | SQLException ex) {
+								Logger.getLogger(Public.class.getName()).log(Level.SEVERE, null, ex);
+								errors.put("sqlError", "Database error occurred.");
+								request.setAttribute("errors", errors);
+								url = "/index.jsp";
+							}
+						}
 					}
 				} else {
-					newUser.setUsername(loggedInUser.getUsername());
+					errors.put("newUsername", "Please enter a username");
 				}
 
-				String firstNameError = Validation.validateFirstName(finalFirstName);
+				String firstNameError = Validation.validateFirstName(newFirstName);
 				if (firstNameError.isBlank()) {
-					newUser.setFirstName(finalFirstName);
+					targetUser.setFirstName(newFirstName);
 				} else {
 					errors.put("newFirstName", firstNameError);
 				}
 
-				String lastNameError = Validation.validateLastName(finalLastName);
+				String lastNameError = Validation.validateLastName(newLastName);
 				if (lastNameError.isBlank()) {
-					newUser.setLastName(finalLastName);
+					targetUser.setLastName(newLastName);
 				} else {
 					errors.put("newLastName", lastNameError);
 				}
 
-				String phoneError = Validation.validatePhoneNumber(finalPhoneNumber);
-				if (phoneError.isBlank()) {
-					String cleanedPhone = finalPhoneNumber.replaceAll("[^0-9]", "");
-					newUser.setPhoneNumber(cleanedPhone);
+				String phoneError = Validation.validatePhoneNumber(newPhoneNumber);
+				if (Validation.validatePhoneNumber(newPhoneNumber).isBlank()) {
+					if (newPhoneNumber != null) {
+						newPhoneNumber = newPhoneNumber.replaceAll("[^0-9]", "");
+					}
+					targetUser.setPhoneNumber(newPhoneNumber);
 				} else {
 					errors.put("newPhoneNumber", phoneError);
 				}
@@ -242,7 +273,7 @@ public class Private extends HttpServlet {
 						} else {
 							String passwordValidationError = Validation.validatePassword(newPassword);
 							if (passwordValidationError.isBlank()) {
-								newUser.setPassword(PasswordEncryption.hashPassword(newPassword));
+								targetUser.setPassword(PasswordEncryption.hashPassword(newPassword));
 							} else {
 								errors.put("newPassword", passwordValidationError);
 							}
@@ -250,46 +281,58 @@ public class Private extends HttpServlet {
 					} else {
 						String passwordValidationError = Validation.validatePassword(newPassword);
 						if (passwordValidationError.isBlank()) {
-							newUser.setPassword(PasswordEncryption.hashPassword(newPassword));
+							targetUser.setPassword(PasswordEncryption.hashPassword(newPassword));
 						} else {
 							errors.put("newPassword", passwordValidationError);
 						}
 					}
-				} else {
-					newUser.setPassword(loggedInUser.getPassword());
 				}
 
-				if (errors.isEmpty() && (isAnyFieldUpdated || newPassword != null && !newPassword.isBlank())) {
+				if (errors.isEmpty() && (isAnyFieldUpdated || (newPassword != null && !newPassword.isBlank()))) {
 					try {
-						ChatDB.updateUser(newUser);
-						request.getSession().setAttribute("loggedInUser", newUser);
+						ChatDB.updateUser(targetUser);
+						if (isSelf) {
+							request.getSession().setAttribute("loggedInUser", targetUser);
+						}
 					} catch (NamingException | SQLException ex) {
 						Logger.getLogger(Public.class.getName()).log(Level.SEVERE, null, ex);
-						errors.put("sqlError", "There is a problem with the database, please contact your Administrator");
+						errors.put("sqlError", "Database error occurred.");
 						request.setAttribute("errors", errors);
-
 						url = "/index.jsp";
 					}
 				} else {
-					url = "/editUser.jsp";
 					request.setAttribute("errors", errors);
 					request.setAttribute("newUsername", newUsername);
 					request.setAttribute("newFirstName", newFirstName);
 					request.setAttribute("newLastName", newLastName);
 					request.setAttribute("newPhoneNumber", newPhoneNumber);
+					url = "/editUser.jsp";
 				}
+
 				break;
 			}
 			case "deleteUser": {
 				int userID = (request.getParameter("userID") != null) ? Integer.parseInt(request.getParameter("userID")) : -1;
+				LinkedHashMap<String, String> errors = new LinkedHashMap<>();
+				url = "/index.jsp";
+
+				boolean isAdmin = loggedInUser.getUsername().equals("admin");
+				boolean isSelf = (loggedInUser.getUserID() == userID);
+
+				if (isAdmin) {
+					url = "/Private?action=viewAllUsers";
+				}
+
+				if (!(isAdmin || isSelf)) {
+					errors.put("accessError", "You do not have permission to delete this user");
+				}
+
+				if (isAdmin && isSelf) {
+					errors.put("accessError", "Admin cannot delete themselves");
+				}
 
 				if (userID > 0) {
-					String username = loggedInUser.getUsername();
-
-					boolean isAdmin = username.equals("admin");
-					boolean isSelf = (loggedInUser.getUserID() == userID);
-
-					if ((isAdmin && !isSelf) || (!isAdmin && isSelf)) {
+					if (errors.isEmpty() && ((isAdmin && !isSelf) || (!isAdmin && isSelf))) {
 						try {
 							LinkedHashMap<Integer, Message> fromMessages = ChatDB.selectAllMessagesFromUser(userID);
 							LinkedHashMap<Integer, Message> toMessages = ChatDB.selectAllMessagesToUser(userID);
@@ -311,21 +354,29 @@ public class Private extends HttpServlet {
 							});
 
 							ChatDB.deleteUser(userID);
+
 						} catch (NamingException | SQLException ex) {
 							Logger.getLogger(Public.class.getName()).log(Level.SEVERE, null, ex);
-							LinkedHashMap<String, String> errors = new LinkedHashMap<>();
 							errors.put("sqlError", "There is a problem with the database, please contact your Administrator");
 							request.setAttribute("errors", errors);
+							url = "/index.jsp";
 						}
-						url = "/Public";
-						break;
 					}
 				}
-				url = "/editUser.jsp";
+				request.setAttribute("errors", errors);
 				break;
 			}
 			case "viewAllUsers": {
 				url = "/allUsers.jsp";
+				try {
+					request.setAttribute("users", ChatDB.selectAllUsers());
+				} catch (NamingException | SQLException ex) {
+					Logger.getLogger(Public.class.getName()).log(Level.SEVERE, null, ex);
+					LinkedHashMap<String, String> errors = new LinkedHashMap<>();
+					errors.put("sqlError", "There is a problem with the database, please contact your Administrator");
+					request.setAttribute("errors", errors);
+					url = "/index.jsp";
+				}
 				break;
 			}
 			case "viewAllMessages": {

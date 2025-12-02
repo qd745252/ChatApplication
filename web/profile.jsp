@@ -3,6 +3,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <%
+	// this is there to prevent people from injecting it into the URL
 	User loggedInUser = (User) request.getSession().getAttribute("loggedInUser");
 
 	if (loggedInUser == null) {
@@ -10,11 +11,13 @@
 		return;
 	}
 
-	String formattedPhoneNumber = String.format("(%s) %s-%s",
-			loggedInUser.getPhoneNumber().substring(0, 3),
-			loggedInUser.getPhoneNumber().substring(3, 6),
-			loggedInUser.getPhoneNumber().substring(6, 10));
-	request.setAttribute("formattedPhoneNumber", formattedPhoneNumber);
+	if (loggedInUser.getPhoneNumber() != null && !loggedInUser.getPhoneNumber().isBlank()) {
+		String formattedPhoneNumber = String.format("(%s) %s-%s",
+				loggedInUser.getPhoneNumber().substring(0, 3),
+				loggedInUser.getPhoneNumber().substring(3, 6),
+				loggedInUser.getPhoneNumber().substring(6, 10));
+		request.setAttribute("formattedPhoneNumber", formattedPhoneNumber);
+	}
 %>
 
 <!DOCTYPE html>
@@ -38,6 +41,7 @@
 			<br>
 			<form action="Private" method="post">
 				<input type="hidden" name="action" value="gotoEditUser">
+				<input type="hidden" name="userID" value="<c:out value='${loggedInUser.userID}' />">
 				<input type="submit" value="Edit Profile">
 			</form>
 		</div>
