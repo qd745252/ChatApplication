@@ -48,7 +48,7 @@
 				</c:forEach>
 			</div>
 			<br>
-			<p>(up to 255 characters)</p>
+			<p>(up to 255 characters, spaces and enters count but your message must contain text)</p>
 			<br>
 			<h2>Send a Message</h2>
 			<form action="Private" method="post">
