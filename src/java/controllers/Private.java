@@ -170,6 +170,11 @@ public class Private extends HttpServlet {
 
 				boolean isAdmin = loggedInUser.getUsername().equals("admin");
 				boolean isSelf = (loggedInUser.getUserID() == userID);
+
+				if (isAdmin) {
+					url = "/Private?action=viewAllUsers";
+				}
+
 				if (!(isAdmin || isSelf)) {
 					errors.put("accessError", "You do not have permission to edit this user");
 					request.setAttribute("errors", errors);
@@ -231,7 +236,7 @@ public class Private extends HttpServlet {
 
 				if (newUsername != null && !newUsername.isBlank()) {
 					if (isAdmin && isSelf && !newUsername.equalsIgnoreCase("admin")) {
-						errors.put("newUsername", "Admin user cannot change their username.");
+						errors.put("newUsername", "Admin user cannot change their username");
 						targetUser.setUsername(targetUser.getUsername());
 					} else {
 						String usernameValidationError = Validation.validateUsername(newUsername);
@@ -241,7 +246,7 @@ public class Private extends HttpServlet {
 							try {
 								User existingUser = ChatDB.selectUserByUsername(newUsername.toLowerCase());
 								if (existingUser != null && existingUser.getUserID() != targetUser.getUserID()) {
-									errors.put("newUsername", "This username is already in use.");
+									errors.put("newUsername", "This username is already in use");
 								} else {
 									targetUser.setUsername(newUsername.toLowerCase());
 								}
@@ -311,7 +316,7 @@ public class Private extends HttpServlet {
 						}
 					} catch (NamingException | SQLException ex) {
 						Logger.getLogger(Public.class.getName()).log(Level.SEVERE, null, ex);
-						errors.put("sqlError", "Database error occurred.");
+						errors.put("sqlError", "There is a problem with the database, please contact your Administrator");
 						request.setAttribute("errors", errors);
 						url = "/index.jsp";
 					}

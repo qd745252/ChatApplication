@@ -39,21 +39,21 @@
 				<input type="hidden" name="action" value="editUser">
 				<input type="hidden" name="userID" value="<c:out value="${editedUser.userID}" />">
 				<p>
-					New Username: <input type="text" name="newUsername" value="<c:out value="${editedUser.username}" />">
+					<span>* </span>New Username: <input type="text" name="newUsername" value="<c:out value="${editedUser.username}" />">
 					<br>
 					<span>${errors['newUsername']}</span>
 					<br>
-					New Password: (leave blank to keep it the same)
+					<span>* </span>New Password: (leave blank to keep it the same)
 					<br>
 					<input type="text" name="newPassword" placeholder='New Password Here'>
 					<br>
 					<span>${errors['newPassword']}</span>
 					<br>
-					New First Name: <input type="text" name="newFirstName" value="<c:out value="${editedUser.firstName}" />">
+					<span>* </span>New First Name: <input type="text" name="newFirstName" value="<c:out value="${editedUser.firstName}" />">
 					<br>
 					<span>${errors['newFirstName']}</span>
 					<br>
-					New Last Name: <input type="text" name="newLastName" value="<c:out value="${editedUser.lastName}" />">
+					<span>* </span>New Last Name: <input type="text" name="newLastName" value="<c:out value="${editedUser.lastName}" />">
 					<br>
 					<span>${errors['newLastName']}</span>
 					<br>
@@ -63,6 +63,7 @@
 					<br>
 				</p>
 				<br>
+				<span>* Required Field</span>
 				<p>Enter the password for the logged in user to apply changes</p>
 				<p>Current Password: <input type="password" name="currentPassword"></p>
 				<span>${errors['currentPassword']}</span>

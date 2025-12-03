@@ -274,7 +274,7 @@ public class ChatDB {
 		ResultSet rs;
 		LinkedHashMap<Integer, Message> messages = new LinkedHashMap<>();
 
-		String query = "SELECT * FROM messages"
+		String query = "SELECT * FROM messages "
 				+ " WHERE from_user_id = ?";
 
 		ps = connection.prepareStatement(query);
@@ -303,7 +303,7 @@ public class ChatDB {
 		PreparedStatement ps;
 		ResultSet rs;
 		LinkedHashMap<Integer, Message> messages = new LinkedHashMap<>();
-		String query = "SELECT * FROM messages"
+		String query = "SELECT * FROM messages "
 				+ " WHERE from_user_id = ?";
 
 		ps = connection.prepareStatement(query);
@@ -364,7 +364,7 @@ public class ChatDB {
 		ResultSet rs;
 		LinkedHashMap<Integer, Message> messages = new LinkedHashMap<>();
 
-		String query = "SELECT * FROM messages"
+		String query = "SELECT * FROM messages "
 				+ " WHERE to_user_id = ?";
 
 		ps = connection.prepareStatement(query);
@@ -414,31 +414,6 @@ public class ChatDB {
 		pool.freeConnection(connection);
 
 		return messages;
-	}
-
-	public static Message updateMessage(Message message, User user) throws NamingException, SQLException {
-		User dbUser = selectUser(message.getFromUserID()); // The user parameter on this method indicates that the update method may be being called from another user, in my case admin
-		ConnectionPool pool = ConnectionPool.getInstance();
-		Connection connection = pool.getConnection();
-		PreparedStatement ps = null;
-		String query;
-
-		if (dbUser == null || user.getUsername().equals("admin")) {
-			query = "UPDATE messages "
-					+ "SET message_contents = ?, "
-					+ "to_user_id = ? "
-					+ "WHERE from_user_id = ?";
-			ps = connection.prepareStatement(query);
-			ps.setString(1, message.getMessageContents());
-			ps.setInt(2, message.getToUserID());
-			ps.setInt(3, message.getFromUserID());
-		}
-
-		ps.executeUpdate();
-
-		ps.close();
-		pool.freeConnection(connection);
-		return message;
 	}
 
 	public static int deleteMessage(int messageID) throws NamingException, SQLException {

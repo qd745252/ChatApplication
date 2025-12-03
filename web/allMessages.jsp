@@ -40,22 +40,14 @@
 						<th>To User</th>
 						<th>From User</th>
 						<th></th>
-						<th></th>
 					</tr>
 				</thead>
 				<tbody>
 					<c:forEach items="${messages}" var="message">
 						<tr>
 							<td><c:out value='${message.value.messageContents}' /></td>
-							<td><c:out value='${message.value.toUserID}' /></td>
-							<td><c:out value='${message.value.fromUserID}' /></td>
-							<td>
-								<form action="Private" method="post">
-									<input type="hidden" name="action" value="gotoEditMessage">
-									<input type="hidden" name="userID" value="<c:out value='${message.value.fromUserID}' />">
-									<input type="submit" value="Edit Message">
-								</form>
-							</td>
+							<td><c:out value='${ChatDB.selectUser(message.value.toUserID).getUsername()}' /></td>
+							<td><c:out value='${ChatDB.selectUser(message.value.fromUserID).getUsername()}' /></td>
 							<td>
 								<form action='Private' method='post' onsubmit="return confirm('Are you sure you want to delete this message?');">
 									<input type='hidden' name='action' value='deleteMessage'>
