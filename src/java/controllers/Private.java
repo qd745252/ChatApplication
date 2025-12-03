@@ -217,7 +217,7 @@ public class Private extends HttpServlet {
 				if (newLastName != null && !newLastName.isBlank() && !newLastName.equalsIgnoreCase(targetUser.getLastName())) {
 					isAnyFieldUpdated = true;
 				}
-				if (newPhoneNumber != null && !newPhoneNumber.isBlank() && !newPhoneNumber.equals(targetUser.getPhoneNumber())) {
+				if ((newPhoneNumber != null || !newPhoneNumber.isBlank()) && !newPhoneNumber.equals(targetUser.getPhoneNumber())) {
 					isAnyFieldUpdated = true;
 				}
 				if (newPassword != null && !newPassword.isBlank() && !PasswordEncryption.checkPassword(newPassword, targetUser.getPassword())) {
@@ -278,8 +278,10 @@ public class Private extends HttpServlet {
 
 				String phoneError = Validation.validatePhoneNumber(newPhoneNumber);
 				if (Validation.validatePhoneNumber(newPhoneNumber).isBlank()) {
-					if (newPhoneNumber != null) {
+					if (!newPhoneNumber.isEmpty()) {
 						newPhoneNumber = newPhoneNumber.replaceAll("[^0-9]", "");
+					} else {
+						newPhoneNumber = null;
 					}
 					targetUser.setPhoneNumber(newPhoneNumber);
 				} else {
