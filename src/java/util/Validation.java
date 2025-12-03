@@ -19,7 +19,7 @@ public class Validation {
 		if (username == null || username.isBlank()) {
 			error = "Please enter a username";
 		} else if (username.length() < 4 || username.length() > 25) {
-			error = "Username must be between 4 and 30 characters";
+			error = "Username must be between 4 and 25 characters";
 		}
 		return error;
 	}
