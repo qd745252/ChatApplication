@@ -336,7 +336,7 @@ public class Private extends HttpServlet {
 			case "deleteUser": {
 				int userID = (request.getParameter("userID") != null) ? Integer.parseInt(request.getParameter("userID")) : -1;
 				LinkedHashMap<String, String> errors = new LinkedHashMap<>();
-				url = "/index.jsp";
+				url = "/Private?action=logout";
 
 				boolean isAdmin = loggedInUser.getUsername().equals("admin");
 				boolean isSelf = (loggedInUser.getUserID() == userID);
