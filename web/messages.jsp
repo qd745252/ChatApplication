@@ -34,6 +34,12 @@
 					<c:choose>
 						<c:when test="${ChatDB.selectUser(message.value.fromUserID).getUsername() eq loggedInUser.username}">
 							<p>${ChatDB.selectUser(message.value.fromUserID).getUsername()} (you) to ${ChatDB.selectUser(message.value.toUserID).getUsername()}: ${message.value.messageContents}</p>
+							<form action="Private" method="post" onsubmit="return confirm('Are you sure you want to delete this message?');">
+								<input type="hidden" name="action" value="deleteMessage">
+								<input type="hidden" name="messageID" value="${message.value.messageID}">
+								<input type="hidden" name="fromUserID" value="${message.value.fromUserID}">
+								<input type="submit" value="Delete Message">
+							</form>
 						</c:when>
 						<c:otherwise>
 							<p>${ChatDB.selectUser(message.value.fromUserID).getUsername()}: ${message.value.messageContents}</p>

@@ -388,6 +388,34 @@ public class ChatDB {
 		return messages;
 	}
 
+	public static LinkedHashMap<Integer, Message> selectAllMessages() throws NamingException, SQLException {
+		ConnectionPool pool = ConnectionPool.getInstance();
+		Connection connection = pool.getConnection();
+		PreparedStatement ps;
+		ResultSet rs;
+		LinkedHashMap<Integer, Message> messages = new LinkedHashMap<>();
+
+		String query = "SELECT * FROM messages";
+
+		ps = connection.prepareStatement(query);
+		rs = ps.executeQuery();
+
+		while (rs.next()) {
+			Message message = new Message();
+			message.setMessageID(rs.getInt("message_id"));
+			message.setMessageContents(rs.getString("message_contents"));
+			message.setToUserID(rs.getInt("to_user_id"));
+			message.setFromUserID(rs.getInt("from_user_id"));
+			messages.put(message.getMessageID(), message);
+		}
+
+		rs.close();
+		ps.close();
+		pool.freeConnection(connection);
+
+		return messages;
+	}
+
 	public static Message updateMessage(Message message, User user) throws NamingException, SQLException {
 		User dbUser = selectUser(message.getFromUserID()); // The user parameter on this method indicates that the update method may be being called from another user, in my case admin
 		ConnectionPool pool = ConnectionPool.getInstance();

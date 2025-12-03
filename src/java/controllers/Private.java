@@ -65,14 +65,32 @@ public class Private extends HttpServlet {
 				break;
 			}
 			case "gotoEditUser": {
+				url = "/editUser.jsp";
 				int userID = (request.getParameter("userID") != null) ? Integer.parseInt(request.getParameter("userID")) : -1;
+				LinkedHashMap<String, String> errors = new LinkedHashMap<>();
+
+				User targetUser;
+				try {
+					targetUser = ChatDB.selectUser(userID);
+					if (targetUser == null) {
+						errors.put("accessError", "User not found");
+						request.setAttribute("errors", errors);
+						url = "/index.jsp";
+					}
+				} catch (NamingException | SQLException ex) {
+					Logger.getLogger(Public.class.getName()).log(Level.SEVERE, null, ex);
+					errors.put("sqlError", "There is a problem with the database, please contact your Administrator");
+					request.setAttribute("errors", errors);
+					url = "/index.jsp";
+					break;
+				}
 				request.setAttribute("userID", userID);
 
-				url = "/editUser.jsp";
 				break;
 			}
 			case "gotoMessages": {
 				url = "/messages.jsp";
+				LinkedHashMap<String, String> errors = new LinkedHashMap<>();
 				try {
 					LinkedHashMap<Integer, Message> toUserMessages = ChatDB.selectAllMessagesToUser(loggedInUser.getUserID());
 					LinkedHashMap<Integer, Message> fromUserMessages = ChatDB.selectAllMessagesFromUser(loggedInUser.getUserID());
@@ -91,7 +109,6 @@ public class Private extends HttpServlet {
 					request.setAttribute("messages", sortedMessagesHashMap);
 				} catch (NamingException | SQLException ex) {
 					Logger.getLogger(Public.class.getName()).log(Level.SEVERE, null, ex);
-					LinkedHashMap<String, String> errors = new LinkedHashMap<>();
 					errors.put("sqlError", "There is a problem with the database, please contact your Administrator");
 					request.setAttribute("errors", errors);
 					url = "/Public";
@@ -127,9 +144,7 @@ public class Private extends HttpServlet {
 					}
 					if (messageContents == null || messageContents.isBlank()) {
 						errors.put("messageContents", "Message cannot be empty");
-					}
-					
-					if (messageContents.length() > 255) {
+					} else if (messageContents.length() > 255) {
 						errors.put("messageContents", "Message cannot be over 255 characters");
 					}
 
@@ -232,7 +247,7 @@ public class Private extends HttpServlet {
 								}
 							} catch (NamingException | SQLException ex) {
 								Logger.getLogger(Public.class.getName()).log(Level.SEVERE, null, ex);
-								errors.put("sqlError", "Database error occurred.");
+								errors.put("sqlError", "There is a problem with the database, please contact your Administrator");
 								request.setAttribute("errors", errors);
 								url = "/index.jsp";
 							}
@@ -354,11 +369,48 @@ public class Private extends HttpServlet {
 							});
 
 							ChatDB.deleteUser(userID);
-
 						} catch (NamingException | SQLException ex) {
 							Logger.getLogger(Public.class.getName()).log(Level.SEVERE, null, ex);
 							errors.put("sqlError", "There is a problem with the database, please contact your Administrator");
 							request.setAttribute("errors", errors);
+							url = "/index.jsp";
+						}
+					}
+				}
+				request.setAttribute("errors", errors);
+				break;
+			}
+			case "deleteMessage": {
+				int messageID = (request.getParameter("messageID") != null) ? Integer.parseInt(request.getParameter("messageID")) : -1;
+				int fromUserID = (request.getParameter("fromUserID") != null) ? Integer.parseInt(request.getParameter("fromUserID")) : -1;
+				LinkedHashMap<String, String> errors = new LinkedHashMap<>();
+				url = "/Private?action=gotoMessages";
+
+				boolean isAdmin = loggedInUser.getUsername().equals("admin");
+				boolean isSelf = (loggedInUser.getUserID() == fromUserID);
+
+				if (isAdmin) {
+					url = "/Private?action=viewAllMessages";
+				}
+
+				try {
+					if (!(isAdmin || isSelf && ChatDB.selectMessage(messageID).getFromUserID() == fromUserID)) {
+						errors.put("accessError", "You do not have permission to delete this message");
+						url = "/index.jsp";
+					}
+				} catch (NamingException | SQLException ex) {
+					Logger.getLogger(Public.class.getName()).log(Level.SEVERE, null, ex);
+					errors.put("sqlError", "There is a problem with the database, please contact your Administrator");
+					url = "/index.jsp";
+				}
+
+				if (messageID > 0) {
+					if (errors.isEmpty() && (isAdmin || isSelf)) {
+						try {
+							ChatDB.deleteMessage(messageID);
+						} catch (NamingException | SQLException ex) {
+							Logger.getLogger(Public.class.getName()).log(Level.SEVERE, null, ex);
+							errors.put("sqlError", "There is a problem with the database, please contact your Administrator");
 							url = "/index.jsp";
 						}
 					}
@@ -381,6 +433,15 @@ public class Private extends HttpServlet {
 			}
 			case "viewAllMessages": {
 				url = "/allMessages.jsp";
+				try {
+					request.setAttribute("messages", ChatDB.selectAllMessages());
+				} catch (NamingException | SQLException ex) {
+					Logger.getLogger(Public.class.getName()).log(Level.SEVERE, null, ex);
+					LinkedHashMap<String, String> errors = new LinkedHashMap<>();
+					errors.put("sqlError", "There is a problem with the database, please contact your Administrator");
+					request.setAttribute("errors", errors);
+					url = "/index.jsp";
+				}
 				break;
 			}
 		}

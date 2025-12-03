@@ -3,17 +3,24 @@
     Created on : 26 nov 2025, 18:18:29
     Author     : creepergd
 --%>
+<%@page import="data.ChatDB"%>
 <%@page import="models.User"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%
 	// this is there to prevent people from injecting it into the URL
 	User loggedInUser = (User) request.getSession().getAttribute("loggedInUser");
 
-	if (loggedInUser == null || !loggedInUser.getUsername().equals("admin")) {
+	if (loggedInUser == null ) {
 		response.sendRedirect("Public");
 		return;
 	}
+
+	if (!loggedInUser.getUsername().equalsIgnoreCase("admin")) {
+		response.sendRedirect("Private");
+		return;
+	}
 %>
+
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html>
@@ -25,34 +32,42 @@
     <body>
 		<c:import url="nav.jsp"/>
 		<div id="container">
-			<h1>Chat:</h1>
-			<div id="chat">
-				<c:forEach items="${messages}" var="message">
-					<c:choose>
-						<c:when test="${ChatDB.selectUser(message.value.fromUserID).getUsername() eq loggedInUser.username}">
-							<p>${ChatDB.selectUser(message.value.fromUserID).getUsername()} (you) to ${ChatDB.selectUser(message.value.toUserID).getUsername()}: ${message.value.messageContents}</p>
-						</c:when>
-						<c:otherwise>
-							<p>${ChatDB.selectUser(message.value.fromUserID).getUsername()}: ${message.value.messageContents}</p>
-						</c:otherwise>
-					</c:choose>
-				</c:forEach>
-			</div>
-			<br>
-			<p>(up to 255 characters)</p>
-			<br>
-			<h2>Send a Message</h2>
-			<form action="Private" method="post">
-				<input type="hidden" name="action" value="sendMessage">
-				<input type="text" name="toUsername" placeholder="To: " value="<c:out value='${toUsername}' />">
-				<br>
-				<span>${errors["toAndFromUserIDs"]}</span>
-				<br>
-				<input type="text" name="messageContents" placeholder="Enter Message Here" value="<c:out value='${messageContents}' />">
-				<br>
-				<span>${errors["messageContents"]}</span>
-				<br>
-				<input type="submit" value="Send">
-			</form>
+			<h1>Admin Messages Page:</h1>
+			<table>
+				<thead>
+					<tr>
+						<th>Message Contents</th>
+						<th>To User</th>
+						<th>From User</th>
+						<th></th>
+						<th></th>
+					</tr>
+				</thead>
+				<tbody>
+					<c:forEach items="${messages}" var="message">
+						<tr>
+							<td><c:out value='${message.value.messageContents}' /></td>
+							<td><c:out value='${message.value.toUserID}' /></td>
+							<td><c:out value='${message.value.fromUserID}' /></td>
+							<td>
+								<form action="Private" method="post">
+									<input type="hidden" name="action" value="gotoEditMessage">
+									<input type="hidden" name="userID" value="<c:out value='${message.value.fromUserID}' />">
+									<input type="submit" value="Edit Message">
+								</form>
+							</td>
+							<td>
+								<form action='Private' method='post' onsubmit="return confirm('Are you sure you want to delete this message?');">
+									<input type='hidden' name='action' value='deleteMessage'>
+									<input type="hidden" name="messageID" value="<c:out value="${message.value.messageID}" />">
+									<input type='submit' value="Delete Message">
+								</form>
+							</td>
+						</tr>
+					</c:forEach>
+				</tbody>
+			</table>
+			<span><c:out value="${errors['accessError']}" /></span>
 		</div>
 	</body>
+</html>

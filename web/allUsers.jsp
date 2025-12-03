@@ -9,16 +9,16 @@
 <%
 	// this is there to prevent people from injecting it into the URL
 	User loggedInUser = (User) request.getSession().getAttribute("loggedInUser");
-	int userID = (request.getParameter("userID") != null) ? Integer.parseInt(request.getParameter("userID")) : -1;
 
-	if (loggedInUser == null) {
+	if (loggedInUser == null ) {
 		response.sendRedirect("Public");
 		return;
 	}
 
-	User editedUser = (loggedInUser.getUserID() == userID) ? loggedInUser : ChatDB.selectUser(userID);
-
-	request.setAttribute("editedUser", editedUser);
+	if (!loggedInUser.getUsername().equalsIgnoreCase("admin")) {
+		response.sendRedirect("Private");
+		return;
+	}
 %>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
@@ -79,3 +79,4 @@
 			<span><c:out value="${errors['accessError']}" /></span>
 		</div>
 	</body>
+</html>
