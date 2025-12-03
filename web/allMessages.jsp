@@ -26,7 +26,7 @@
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>Messages</title>
+        <title>All Messages</title>
 		<link rel="stylesheet" href="css/style.css" type="text/css">
     </head>
     <body>
@@ -45,7 +45,7 @@
 				<tbody>
 					<c:forEach items="${messages}" var="message">
 						<tr>
-							<td><c:out value='${message.value.messageContents}' /></td>
+								<td class="messageContents"><c:out value='${message.value.messageContents}' /></td>
 							<td><c:out value='${ChatDB.selectUser(message.value.toUserID).getUsername()}' /></td>
 							<td><c:out value='${ChatDB.selectUser(message.value.fromUserID).getUsername()}' /></td>
 							<td>
