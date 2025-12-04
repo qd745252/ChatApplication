@@ -76,6 +76,10 @@ public class Private extends HttpServlet {
 						errors.put("accessError", "User not found");
 						request.setAttribute("errors", errors);
 						url = "/index.jsp";
+					} else if (!loggedInUser.getUsername().equalsIgnoreCase("admin") && targetUser != loggedInUser) {
+						errors.put("accessError", "You do not have permission to edit this user");
+						request.setAttribute("errors", errors);
+						url = "/index.jsp";
 					}
 				} catch (NamingException | SQLException ex) {
 					Logger.getLogger(Public.class.getName()).log(Level.SEVERE, null, ex);
